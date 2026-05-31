@@ -4,14 +4,27 @@ Sitio web **one-page**, **bilingüe (ES/EN)**, construido con **Astro + Tailwind
 Diseño premium, humano y minimalista, con animaciones suaves y accesibles
 (respeta `prefers-reduced-motion`) y 100% responsive.
 
+## 🗂️ Estructura del repositorio
+
+```
+JUMA/
+├── frontend/     ← el sitio web (Astro + Tailwind). Aquí vive todo el código.
+├── backend/      ← reservado para lógica de servidor futura (ver backend/README.md).
+├── README.md
+└── .gitignore
+```
+
+> ℹ️ Hoy el sitio es **100% estático**, así que **no hay backend todavía**.
+> La carpeta `backend/` queda reservada para cuando se necesite (donaciones online,
+> formularios con envío de correo, panel de administración, etc.).
+
 ## 🚀 Cómo ejecutarlo (también al cambiar de PC)
 
-Solo necesitas tener **Node.js** instalado. Las dependencias se definen en
-`package.json` (+ versiones exactas en `package-lock.json`), así que:
+Solo necesitas tener **Node.js** instalado. Todo se ejecuta **dentro de `frontend/`**:
 
 ```bash
 git clone https://github.com/Vermell11/JUMA.git
-cd JUMA
+cd JUMA/frontend
 npm install        # reinstala TODAS las dependencias (equivale al requirements.txt de Python)
 npm run dev        # servidor de desarrollo → http://localhost:4321
 npm run build      # genera el sitio estático en dist/
@@ -24,9 +37,12 @@ npm run assets     # regenera logos/fotos desde design-source/ (solo si cambias 
 
 ## 📦 Despliegue
 
-Sitio **100% estático** (carpeta `dist/`). Opciones gratuitas:
-- **Netlify / Vercel / Cloudflare Pages**: conecta el repo. Build: `npm run build` · Salida: `dist`.
-- Cualquier hosting: sube el contenido de `dist/` por FTP.
+Sitio **100% estático** (carpeta `frontend/dist/`). Opciones gratuitas:
+- **Netlify / Vercel / Cloudflare Pages**: conecta el repo y configura:
+  - **Base directory / Root:** `frontend`
+  - **Build command:** `npm run build`
+  - **Publish / Output directory:** `dist` (es decir `frontend/dist`)
+- Cualquier hosting: sube el contenido de `frontend/dist/` por FTP.
 
 ## 🎨 Marca aplicada
 
@@ -55,7 +71,7 @@ Programas (6) · Galería (12 fotos, masonry) · Testimonios · Donar · Contact
 
 ## ⚠️ Pendientes por reemplazar
 
-Edita `src/pages/index.astro`:
+Edita `frontend/src/pages/index.astro`:
 
 1. **Contacto** — actualmente `xxx`: dirección, teléfono y correo. (busca `xxx`)
 2. **WhatsApp** — constante `WHATSAPP = "57XXXXXXXXXX"` arriba del archivo. Pon el número real.
@@ -68,23 +84,24 @@ Edita `src/pages/index.astro`:
 - Touch targets ≥ 44px, viewport meta, sin scroll horizontal (verificado a 390px).
 - Imágenes WebP responsive + lazy loading; 1 CSS + JS mínimo. Build ≈ 2.5 MB.
 
-## 📁 Estructura
+## 📁 Estructura de `frontend/`
 
 ```
-src/
-  pages/index.astro       ← toda la página + diccionario ES/EN + animaciones
-  styles/global.css       ← tema de marca, animaciones, accesibilidad
-  assets/                 ← logos (color + blanco) + fotos usadas (optimizadas por Astro)
-public/favicon.png        ← favicon
-scripts/build-assets.mjs  ← script (sharp) que recorta logos y selecciona fotos · `npm run assets`
-design-source/            ← material original de la fundación (respaldo)
-  Fotos/                  ← 159 fotos originales
-  Logos/                  ← logos PNG + PDFs de marca
-astro.config.mjs, package.json, tsconfig.json   ← config (deben ir en la raíz)
+frontend/
+  src/
+    pages/index.astro       ← toda la página + diccionario ES/EN + animaciones
+    styles/global.css       ← tema de marca, animaciones, accesibilidad
+    assets/                 ← logos (color + blanco) + fotos usadas (optimizadas por Astro)
+  public/favicon.png        ← favicon
+  scripts/build-assets.mjs  ← script (sharp) que recorta logos y selecciona fotos · `npm run assets`
+  design-source/            ← material original de la fundación (respaldo)
+    Fotos/                  ← 159 fotos originales
+    Logos/                  ← logos PNG + PDFs de marca
+  astro.config.mjs, package.json, tsconfig.json   ← config (deben ir junto al package.json)
 ```
 
 ## 🔧 Cómo cambiar las fotos
 
-Las imágenes clave son `src/assets/hero.jpeg`, `about.jpeg`, `donate.jpeg` y la galería
-`src/assets/gallery/g01..g12.jpeg`. Reemplaza el archivo por otro con el mismo nombre
-(o ajusta los índices en `scripts/build-assets.mjs` y corre `npm run assets`) y vuelve a `npm run build`.
+Las imágenes clave son `frontend/src/assets/hero.jpeg`, `about.jpeg`, `donate.jpeg` y la galería
+`frontend/src/assets/gallery/g01..g12.jpeg`. Reemplaza el archivo por otro con el mismo nombre
+(o ajusta los índices en `frontend/scripts/build-assets.mjs` y corre `npm run assets`) y vuelve a `npm run build`.
