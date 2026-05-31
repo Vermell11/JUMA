@@ -1,0 +1,775 @@
+---
+import { Image } from "astro:assets";
+import "../styles/global.css";
+import logoColor from "../assets/logo-horizontal.png";
+import logoWhite from "../assets/logo-horizontal-white.png";
+import sealColor from "../assets/logo-stacked.png";
+import heroImg from "../assets/hero.jpeg";
+import aboutImg from "../assets/about.jpeg";
+import donateImg from "../assets/donate.jpeg";
+
+// Gallery photos (optimized at build time by Astro/Sharp)
+const galleryModules = import.meta.glob<ImageMetadata>(
+  "../assets/gallery/*.jpeg",
+  { eager: true, import: "default" }
+);
+const galleryPics = Object.keys(galleryModules)
+  .sort()
+  .map((k) => galleryModules[k]);
+
+// ---------------------------------------------------------------------------
+// Bilingual dictionary (ES default · EN toggle). Each key = one leaf text node.
+// ---------------------------------------------------------------------------
+const t = {
+  navAbout: { es: "Nosotros", en: "About" },
+  navImpact: { es: "Impacto", en: "Impact" },
+  navPrograms: { es: "Programas", en: "Programs" },
+  navGallery: { es: "Galería", en: "Gallery" },
+  navContact: { es: "Contacto", en: "Contact" },
+  navDonate: { es: "Donar", en: "Donate" },
+
+  heroKicker: { es: "Siempre hay una esperanza", en: "There is always hope" },
+  heroTitle1: { es: "Una mano que", en: "A hand that" },
+  heroTitle2: { es: "transforma vidas", en: "transforms lives" },
+  heroSubtitle: {
+    es: "Formamos con amor y en la Palabra de Dios a 200 niños de la comunidad de Santa Rosa, a las afueras de Cartagena de Indias.",
+    en: "With love and the Word of God, we nurture 200 children from the Santa Rosa community, on the outskirts of Cartagena de Indias.",
+  },
+  heroCta1: { es: "Quiero donar", en: "I want to donate" },
+  heroCta2: { es: "Conoce nuestra labor", en: "See our work" },
+  heroTrust: { es: "Organización sin ánimo de lucro · NIT 901.325.629", en: "Nonprofit organization · NIT 901.325.629" },
+
+  aboutKicker: { es: "Quiénes somos", en: "Who we are" },
+  aboutTitle: { es: "Sembramos esperanza en cada niño", en: "We sow hope in every child" },
+  aboutP1: {
+    es: "La Fundación Juan Una Mano Ayuda nace para acompañar a los niños y niñas de Santa Rosa, una comunidad a las afueras de Cartagena de Indias. Les llevamos el amor de Dios, formación en valores y momentos que despiertan sonrisas.",
+    en: "The Juan Una Mano Ayuda Foundation was born to support the children of Santa Rosa, a community on the outskirts of Cartagena de Indias. We bring them the love of God, an education in values, and moments that spark smiles.",
+  },
+  aboutP2: {
+    es: "Durante el año realizamos jornadas de salud y ortodoncia, entrega de ropa, regalos de Navidad y celebraciones del Día del Niño, porque creemos que cada niño merece crecer sano, amado y con esperanza.",
+    en: "Throughout the year we run health and orthodontics days, clothing drives, Christmas gifts and Children's Day celebrations, because we believe every child deserves to grow up healthy, loved and full of hope.",
+  },
+  verse: {
+    es: "«Dejad que los niños vengan a mí.» — Mateo 19:14",
+    en: "“Let the little children come to me.” — Matthew 19:14",
+  },
+  badgeSmiles: { es: "sonrisas", en: "smiles" },
+  missionTitle: { es: "Misión", en: "Mission" },
+  missionText: {
+    es: "Acompañar y formar integralmente a los niños de Santa Rosa, llevándoles el amor de Dios, educación en valores y oportunidades de bienestar mediante jornadas de salud, recreación y entrega de regalos que despiertan sonrisas y sueños.",
+    en: "To support and holistically nurture the children of Santa Rosa by bringing them the love of God, an education in values and opportunities for well-being through health days, recreation and gifts that spark smiles and dreams.",
+  },
+  visionTitle: { es: "Visión", en: "Vision" },
+  visionText: {
+    es: "Para 2030, ser una fundación referente en el Caribe colombiano en la formación de niños en valores cristianos, ampliando nuestro alcance a nuevas comunidades y garantizando que cada niño crezca sano, amado y con esperanza.",
+    en: "By 2030, to be a leading foundation in the Colombian Caribbean for raising children in Christian values, expanding our reach to new communities and ensuring every child grows up healthy, loved and hopeful.",
+  },
+
+  impactKicker: { es: "Nuestro impacto", en: "Our impact" },
+  impactTitle: { es: "Cifras que son sonrisas", en: "Numbers that are smiles" },
+  stat1Label: { es: "Niños atendidos", en: "Children served" },
+  stat2Label: { es: "Años de edad", en: "Years old" },
+  stat3Label: { es: "Comunidad acompañada", en: "Community served" },
+  stat4Label: { es: "Jornadas al año", en: "Outreach events / year" },
+
+  programsKicker: { es: "Qué hacemos", en: "What we do" },
+  programsTitle: { es: "Programas que llevan amor", en: "Programs that carry love" },
+  programsSubtitle: {
+    es: "Cada actividad busca cuidar el cuerpo, el corazón y el espíritu de los niños de Santa Rosa.",
+    en: "Every activity is designed to care for the body, heart and spirit of the children of Santa Rosa.",
+  },
+  p1Title: { es: "Palabra de Dios", en: "Word of God" },
+  p1Text: { es: "Encuentros de formación en fe y valores que llevan el amor de Dios al corazón de cada niño.", en: "Faith and values gatherings that bring the love of God to every child's heart." },
+  p2Title: { es: "Regalos de Navidad", en: "Christmas Gifts" },
+  p2Text: { es: "Cada diciembre llevamos regalos y alegría para que ningún niño se quede sin su Navidad.", en: "Every December we bring gifts and joy so no child is left without a Christmas." },
+  p3Title: { es: "Día del Niño", en: "Children's Day" },
+  p3Text: { es: "Celebraciones, juegos y regalos para honrar y festejar la niñez de la comunidad.", en: "Celebrations, games and gifts to honor and celebrate the children of the community." },
+  p4Title: { es: "Jornadas de Ropa", en: "Clothing Drives" },
+  p4Text: { es: "Entrega de ropa y abrigo para los niños y las familias de Santa Rosa.", en: "Clothing and warmth for the children and families of Santa Rosa." },
+  p5Title: { es: "Salud y Ortodoncia", en: "Health & Orthodontics" },
+  p5Text: { es: "Jornadas de revisión médica y ortodoncia para cuidar la salud de los niños.", en: "Medical check-ups and orthodontics days to care for the children's health." },
+  p6Title: { es: "Recreación y Sueños", en: "Play & Dreams" },
+  p6Text: { es: "Espacios de juego y aprendizaje que estimulan el desarrollo y los sueños.", en: "Play and learning spaces that nurture development and dreams." },
+
+  galleryKicker: { es: "Galería", en: "Gallery" },
+  galleryTitle: { es: "Momentos que lo dicen todo", en: "Moments that say it all" },
+  gallerySubtitle: {
+    es: "Sonrisas reales de las jornadas con nuestros niños.",
+    en: "Real smiles from our days with the children.",
+  },
+
+  testKicker: { es: "Testimonios", en: "Testimonials" },
+  testTitle: { es: "Voces de esperanza", en: "Voices of hope" },
+  t1Quote: { es: "Gracias a la fundación mis hijos reciben amor, atención médica y conocen de Dios. Son una bendición para nuestra comunidad.", en: "Thanks to the foundation my children receive love, medical care and learn about God. They are a blessing for our community." },
+  t1Name: { es: "María González", en: "María González" },
+  t1Role: { es: "Madre de familia, Santa Rosa", en: "Mother, Santa Rosa" },
+  t2Quote: { es: "Ver la sonrisa de los niños en cada jornada es lo que nos mueve. Aquí nadie está solo.", en: "Seeing the children smile at every event is what moves us. Here, no one is alone." },
+  t2Name: { es: "Carlos Pérez", en: "Carlos Pérez" },
+  t2Role: { es: "Voluntario", en: "Volunteer" },
+  t3Quote: { es: "En Navidad recibí mi primer regalo gracias a la fundación. Nunca lo voy a olvidar.", en: "At Christmas I received my first gift thanks to the foundation. I will never forget it." },
+  t3Name: { es: "Luisa, 10 años", en: "Luisa, age 10" },
+  t3Role: { es: "Niña de la comunidad", en: "Child of the community" },
+  testNote: { es: "Testimonios de muestra — se reemplazarán por testimonios reales.", en: "Sample testimonials — to be replaced with real ones." },
+
+  donateKicker: { es: "Dona", en: "Donate" },
+  donateTitle: { es: "Tu mano también puede ayudar", en: "Your hand can help too" },
+  donateSubtitle: {
+    es: "Con tu aporte llevamos salud, educación, regalos y el amor de Dios a los niños de Santa Rosa. Cada peso se transforma en una sonrisa.",
+    en: "Your gift brings health, education, presents and the love of God to the children of Santa Rosa. Every peso becomes a smile.",
+  },
+  amountLabel: { es: "Montos sugeridos", en: "Suggested amounts" },
+  donateHowTitle: { es: "Cómo donar", en: "How to donate" },
+  bankTitle: { es: "Transferencia Bancolombia", en: "Bancolombia Transfer" },
+  bankAccLabel: { es: "Cuenta de ahorros", en: "Savings account" },
+  nequiTitle: { es: "Nequi", en: "Nequi" },
+  nequiLabel: { es: "Número", en: "Number" },
+  copyBtn: { es: "Copiar", en: "Copy" },
+  copiedMsg: { es: "¡Copiado!", en: "Copied!" },
+  donateNote: {
+    es: "Para certificados de donación o donaciones de empresas, escríbenos. ¡Mil gracias por tu generosidad!",
+    en: "For donation certificates or corporate giving, write to us. Thank you so much for your generosity!",
+  },
+  donateTrust: { es: "Fundación Juan Una Mano Ayuda · NIT 901.325.629", en: "Juan Una Mano Ayuda Foundation · NIT 901.325.629" },
+
+  contactKicker: { es: "Contacto", en: "Contact" },
+  contactTitle: { es: "Hablemos", en: "Let's talk" },
+  contactSubtitle: {
+    es: "¿Quieres ser voluntario, aliado o conocer más? Estamos para ayudarte.",
+    en: "Want to volunteer, partner with us or learn more? We're here to help.",
+  },
+  addrLabel: { es: "Dirección", en: "Address" },
+  phoneLabel: { es: "Teléfono / WhatsApp", en: "Phone / WhatsApp" },
+  emailLabel: { es: "Correo", en: "Email" },
+  igLabel: { es: "Instagram", en: "Instagram" },
+  waBtn: { es: "Escríbenos por WhatsApp", en: "Message us on WhatsApp" },
+  igBtn: { es: "Síguenos en Instagram", en: "Follow us on Instagram" },
+
+  footerBlurb: {
+    es: "Llevando amor, salud y la Palabra de Dios a los niños de Santa Rosa, Cartagena de Indias.",
+    en: "Bringing love, health and the Word of God to the children of Santa Rosa, Cartagena de Indias.",
+  },
+  footerLinksTitle: { es: "Navegación", en: "Navigation" },
+  footerContactTitle: { es: "Contacto", en: "Contact" },
+  footerRights: { es: "Todos los derechos reservados.", en: "All rights reserved." },
+  footerMade: { es: "Hecho con amor para los niños de Santa Rosa.", en: "Made with love for the children of Santa Rosa." },
+};
+
+// Real data (provided) + placeholders (to confirm)
+const INSTAGRAM = "https://www.instagram.com/fjuanunamanoayuda";
+const BANK_ACC = "78800001391";
+const NEQUI = "3008017056";
+const NIT = "901.325.629";
+const WHATSAPP = "57XXXXXXXXXX"; // TODO: reemplazar por número real
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <title>Fundación Juan Una Mano Ayuda — Niños de Santa Rosa, Cartagena</title>
+    <meta
+      name="description"
+      content="Fundación Juan Una Mano Ayuda: formamos con amor y en la Palabra de Dios a 200 niños de Santa Rosa, a las afueras de Cartagena de Indias. Dona y transforma vidas."
+    />
+    <meta name="theme-color" content="#0077C8" />
+    <meta property="og:title" content="Fundación Juan Una Mano Ayuda" />
+    <meta property="og:description" content="Transformamos la vida de los niños de Santa Rosa, Cartagena de Indias." />
+    <meta property="og:type" content="website" />
+    <meta name="robots" content="index, follow" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body class="bg-surface text-ink">
+    <!-- Skip link (accessibility) -->
+    <a
+      href="#contenido"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2 focus:text-white"
+      >Saltar al contenido</a
+    >
+
+    <!-- ============================= HEADER ============================= -->
+    <header id="header" class="site-header fixed inset-x-0 top-0 z-50 py-4">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-5 sm:px-8">
+        <a href="#inicio" class="logo-swap block" aria-label="Inicio — Fundación Juan Una Mano Ayuda">
+          <Image src={logoWhite} alt="" aria-hidden="true" width={560} height={296} class="logo-white h-11 w-auto sm:h-12" />
+          <Image src={logoColor} alt="Logo Fundación Juan Una Mano Ayuda" width={560} height={296} class="logo-color h-11 w-auto sm:h-12" />
+        </a>
+
+        <nav class="hidden items-center gap-8 lg:flex" aria-label="Principal">
+          <a href="#nosotros" data-header-link class="nav-link text-sm font-medium text-white transition-colors" data-i18n="navAbout">{t.navAbout.es}</a>
+          <a href="#impacto" data-header-link class="nav-link text-sm font-medium text-white transition-colors" data-i18n="navImpact">{t.navImpact.es}</a>
+          <a href="#programas" data-header-link class="nav-link text-sm font-medium text-white transition-colors" data-i18n="navPrograms">{t.navPrograms.es}</a>
+          <a href="#galeria" data-header-link class="nav-link text-sm font-medium text-white transition-colors" data-i18n="navGallery">{t.navGallery.es}</a>
+          <a href="#contacto" data-header-link class="nav-link text-sm font-medium text-white transition-colors" data-i18n="navContact">{t.navContact.es}</a>
+        </nav>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button
+            data-lang-toggle
+            data-header-link
+            class="cursor-pointer rounded-full border border-white px-3 py-1.5 text-xs font-bold font-display text-white transition hover:bg-white/15"
+            aria-label="Cambiar idioma / Switch language"
+          >EN</button>
+          <a
+            href="#donar"
+            class="btn hidden bg-accent px-5 py-2.5 text-sm text-white shadow-lg shadow-accent/30 hover:bg-accent-dark sm:inline-flex"
+            data-i18n="navDonate"
+          >{t.navDonate.es}</a>
+          <button
+            id="menu-btn"
+            data-header-link
+            class="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-white text-white lg:hidden"
+            aria-label="Abrir menú"
+            aria-expanded="false"
+            aria-controls="mobile-menu"
+          >
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" /></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile menu -->
+      <div id="mobile-menu" class="hidden border-t border-black/5 bg-white px-5 pb-6 pt-2 text-ink shadow-xl lg:hidden">
+        <nav class="flex flex-col" aria-label="Móvil">
+          <a href="#nosotros" class="mobile-link border-b border-black/5 py-3 font-medium" data-i18n="navAbout">{t.navAbout.es}</a>
+          <a href="#impacto" class="mobile-link border-b border-black/5 py-3 font-medium" data-i18n="navImpact">{t.navImpact.es}</a>
+          <a href="#programas" class="mobile-link border-b border-black/5 py-3 font-medium" data-i18n="navPrograms">{t.navPrograms.es}</a>
+          <a href="#galeria" class="mobile-link border-b border-black/5 py-3 font-medium" data-i18n="navGallery">{t.navGallery.es}</a>
+          <a href="#contacto" class="mobile-link border-b border-black/5 py-3 font-medium" data-i18n="navContact">{t.navContact.es}</a>
+          <a href="#donar" class="mobile-link btn mt-4 bg-accent py-3 text-white" data-i18n="navDonate">{t.navDonate.es}</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="contenido">
+      <!-- ============================= HERO ============================= -->
+      <section id="inicio" class="relative flex min-h-[92vh] items-center overflow-hidden">
+        <Image
+          src={heroImg}
+          alt="Niños de la comunidad de Santa Rosa, Cartagena, en una jornada de la fundación"
+          widths={[768, 1280, 1920]}
+          sizes="100vw"
+          loading="eager"
+          fetchpriority="high"
+          class="absolute inset-0 h-full w-full object-cover object-center"
+        />
+        <div class="absolute inset-0 bg-gradient-to-br from-primary-dark/92 via-primary-dark/72 to-primary/45"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/15"></div>
+        <div class="blob blob--slow pointer-events-none absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-secondary/30 mix-blend-screen"></div>
+        <div class="blob blob--delay pointer-events-none absolute -right-16 bottom-10 h-80 w-80 rounded-full bg-accent/20 mix-blend-screen"></div>
+
+        <div class="relative mx-auto w-full max-w-7xl px-5 py-32 sm:px-8">
+          <div class="max-w-2xl text-white">
+            <p class="reveal font-hand text-3xl text-white sm:text-4xl" data-i18n="heroKicker" style="text-shadow:0 2px 14px rgba(0,0,0,.45)">{t.heroKicker.es}</p>
+            <h1 class="reveal mt-3 font-display text-4xl font-extrabold leading-[1.05] sm:text-6xl lg:text-7xl" style="transition-delay:90ms">
+              <span data-i18n="heroTitle1">{t.heroTitle1.es}</span><br />
+              <span class="text-secondary" data-i18n="heroTitle2">{t.heroTitle2.es}</span>
+            </h1>
+            <p class="reveal mt-6 max-w-xl text-lg text-white/90 sm:text-xl" data-i18n="heroSubtitle" style="transition-delay:180ms">{t.heroSubtitle.es}</p>
+            <div class="reveal mt-9 flex flex-col gap-3 sm:flex-row" style="transition-delay:260ms">
+              <a href="#donar" class="btn bg-accent px-8 py-3.5 text-base text-white shadow-xl shadow-accent/40 hover:bg-accent-dark" data-i18n="heroCta1">{t.heroCta1.es}</a>
+              <a href="#nosotros" class="btn border-2 border-white/80 px-8 py-3.5 text-base text-white hover:bg-white hover:text-primary-dark" data-i18n="heroCta2">{t.heroCta2.es}</a>
+            </div>
+            <p class="reveal mt-8 text-sm text-white/75" data-i18n="heroTrust" style="transition-delay:340ms">{t.heroTrust.es}</p>
+          </div>
+        </div>
+
+        <div class="scroll-hint absolute bottom-7 left-1/2 -translate-x-1/2 text-white/80" aria-hidden="true">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+        </div>
+      </section>
+
+      <!-- ============================= ABOUT ============================= -->
+      <section id="nosotros" class="bg-surface py-24 sm:py-32">
+        <div class="mx-auto grid max-w-7xl items-center gap-14 px-5 sm:px-8 lg:grid-cols-2 lg:gap-20">
+          <div class="reveal relative">
+            <div class="absolute -left-5 -top-5 -z-10 h-full w-full rounded-[2.5rem] bg-surface-alt"></div>
+            <Image
+              src={aboutImg}
+              alt="Jornada de la Fundación Juan Una Mano Ayuda con los niños de Santa Rosa"
+              widths={[480, 800, 1100]}
+              sizes="(max-width:1024px) 100vw, 50vw"
+              class="aspect-[4/5] w-full rounded-[2.5rem] object-cover shadow-2xl shadow-primary/15"
+            />
+            <div class="absolute -bottom-6 -right-4 max-w-[15rem] rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black/5 sm:-right-6">
+              <p class="font-hand text-3xl text-accent">+200 <span data-i18n="badgeSmiles">{t.badgeSmiles.es}</span></p>
+              <p class="mt-1 text-sm text-muted" data-i18n="stat1Label">{t.stat1Label.es}</p>
+            </div>
+          </div>
+
+          <div>
+            <p class="reveal font-hand text-3xl text-primary" data-i18n="aboutKicker">{t.aboutKicker.es}</p>
+            <h2 class="reveal mt-2 text-3xl font-bold sm:text-4xl lg:text-5xl" data-i18n="aboutTitle" style="transition-delay:80ms">{t.aboutTitle.es}</h2>
+            <p class="reveal mt-6 text-lg text-muted" data-i18n="aboutP1" style="transition-delay:140ms">{t.aboutP1.es}</p>
+            <p class="reveal mt-4 text-lg text-muted" data-i18n="aboutP2" style="transition-delay:200ms">{t.aboutP2.es}</p>
+
+            <div class="reveal mt-8 grid gap-5 sm:grid-cols-2" style="transition-delay:260ms">
+              <div class="rounded-2xl border border-black/5 bg-surface-alt p-6">
+                <div class="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                </div>
+                <h3 class="mt-4 font-bold text-lg" data-i18n="missionTitle">{t.missionTitle.es}</h3>
+                <p class="mt-2 text-sm text-muted" data-i18n="missionText">{t.missionText.es}</p>
+              </div>
+              <div class="rounded-2xl border border-black/5 bg-surface-alt p-6">
+                <div class="flex h-11 w-11 items-center justify-center rounded-full bg-accent/10 text-accent">
+                  <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                </div>
+                <h3 class="mt-4 font-bold text-lg" data-i18n="visionTitle">{t.visionTitle.es}</h3>
+                <p class="mt-2 text-sm text-muted" data-i18n="visionText">{t.visionText.es}</p>
+              </div>
+            </div>
+
+            <p class="reveal mt-8 border-l-4 border-primary pl-5 font-hand text-2xl text-ink/80" data-i18n="verse" style="transition-delay:320ms">{t.verse.es}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= IMPACT ============================= -->
+      <section id="impacto" class="relative overflow-hidden bg-primary py-20 text-white sm:py-24">
+        <div class="blob pointer-events-none absolute -right-20 -top-16 h-72 w-72 rounded-full bg-white/10"></div>
+        <div class="blob blob--slow pointer-events-none absolute -bottom-24 left-1/4 h-80 w-80 rounded-full bg-primary-dark/40"></div>
+        <div class="relative mx-auto max-w-7xl px-5 sm:px-8">
+          <div class="mx-auto max-w-2xl text-center">
+            <p class="reveal font-hand text-3xl text-white/90" data-i18n="impactKicker">{t.impactKicker.es}</p>
+            <h2 class="reveal mt-2 text-3xl font-bold sm:text-4xl" data-i18n="impactTitle" style="transition-delay:80ms">{t.impactTitle.es}</h2>
+          </div>
+          <dl class="mt-14 grid grid-cols-2 gap-8 text-center lg:grid-cols-4">
+            <div class="reveal">
+              <dd class="stat-num font-display text-5xl font-extrabold sm:text-6xl" data-count="200" data-suffix="+">0</dd>
+              <dt class="mt-2 text-sm font-medium text-white/80" data-i18n="stat1Label">{t.stat1Label.es}</dt>
+            </div>
+            <div class="reveal" style="transition-delay:90ms">
+              <dd class="font-display text-5xl font-extrabold sm:text-6xl">5–12</dd>
+              <dt class="mt-2 text-sm font-medium text-white/80" data-i18n="stat2Label">{t.stat2Label.es}</dt>
+            </div>
+            <div class="reveal" style="transition-delay:180ms">
+              <dd class="stat-num font-display text-5xl font-extrabold sm:text-6xl" data-count="1">0</dd>
+              <dt class="mt-2 text-sm font-medium text-white/80" data-i18n="stat3Label">{t.stat3Label.es}</dt>
+            </div>
+            <div class="reveal" style="transition-delay:270ms">
+              <dd class="stat-num font-display text-5xl font-extrabold sm:text-6xl" data-count="4" data-suffix="+">0</dd>
+              <dt class="mt-2 text-sm font-medium text-white/80" data-i18n="stat4Label">{t.stat4Label.es}</dt>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- ============================= PROGRAMS ============================= -->
+      <section id="programas" class="bg-surface-alt py-24 sm:py-32">
+        <div class="mx-auto max-w-7xl px-5 sm:px-8">
+          <div class="mx-auto max-w-2xl text-center">
+            <p class="reveal font-hand text-3xl text-primary" data-i18n="programsKicker">{t.programsKicker.es}</p>
+            <h2 class="reveal mt-2 text-3xl font-bold sm:text-4xl lg:text-5xl" data-i18n="programsTitle" style="transition-delay:80ms">{t.programsTitle.es}</h2>
+            <p class="reveal mt-4 text-lg text-muted" data-i18n="programsSubtitle" style="transition-delay:140ms">{t.programsSubtitle.es}</p>
+          </div>
+
+          <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <article class="reveal group rounded-3xl border border-black/5 bg-white p-7 shadow-sm transition hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/10">
+              <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-white">
+                <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+              </div>
+              <h3 class="mt-5 font-bold text-xl" data-i18n="p1Title">{t.p1Title.es}</h3>
+              <p class="mt-2 text-muted" data-i18n="p1Text">{t.p1Text.es}</p>
+            </article>
+            <article class="reveal group rounded-3xl border border-black/5 bg-white p-7 shadow-sm transition hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/10" style="transition-delay:80ms">
+              <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 text-accent transition group-hover:bg-accent group-hover:text-white">
+                <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+              </div>
+              <h3 class="mt-5 font-bold text-xl" data-i18n="p2Title">{t.p2Title.es}</h3>
+              <p class="mt-2 text-muted" data-i18n="p2Text">{t.p2Text.es}</p>
+            </article>
+            <article class="reveal group rounded-3xl border border-black/5 bg-white p-7 shadow-sm transition hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/10" style="transition-delay:160ms">
+              <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/10 text-secondary transition group-hover:bg-secondary group-hover:text-white">
+                <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" /></svg>
+              </div>
+              <h3 class="mt-5 font-bold text-xl" data-i18n="p3Title">{t.p3Title.es}</h3>
+              <p class="mt-2 text-muted" data-i18n="p3Text">{t.p3Text.es}</p>
+            </article>
+            <article class="reveal group rounded-3xl border border-black/5 bg-white p-7 shadow-sm transition hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/10">
+              <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-white">
+                <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+              </div>
+              <h3 class="mt-5 font-bold text-xl" data-i18n="p4Title">{t.p4Title.es}</h3>
+              <p class="mt-2 text-muted" data-i18n="p4Text">{t.p4Text.es}</p>
+            </article>
+            <article class="reveal group rounded-3xl border border-black/5 bg-white p-7 shadow-sm transition hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/10" style="transition-delay:80ms">
+              <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 text-accent transition group-hover:bg-accent group-hover:text-white">
+                <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+              </div>
+              <h3 class="mt-5 font-bold text-xl" data-i18n="p5Title">{t.p5Title.es}</h3>
+              <p class="mt-2 text-muted" data-i18n="p5Text">{t.p5Text.es}</p>
+            </article>
+            <article class="reveal group rounded-3xl border border-black/5 bg-white p-7 shadow-sm transition hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/10" style="transition-delay:160ms">
+              <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/10 text-secondary transition group-hover:bg-secondary group-hover:text-white">
+                <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" /></svg>
+              </div>
+              <h3 class="mt-5 font-bold text-xl" data-i18n="p6Title">{t.p6Title.es}</h3>
+              <p class="mt-2 text-muted" data-i18n="p6Text">{t.p6Text.es}</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= GALLERY ============================= -->
+      <section id="galeria" class="bg-surface py-24 sm:py-32">
+        <div class="mx-auto max-w-7xl px-5 sm:px-8">
+          <div class="mx-auto max-w-2xl text-center">
+            <p class="reveal font-hand text-3xl text-primary" data-i18n="galleryKicker">{t.galleryKicker.es}</p>
+            <h2 class="reveal mt-2 text-3xl font-bold sm:text-4xl lg:text-5xl" data-i18n="galleryTitle" style="transition-delay:80ms">{t.galleryTitle.es}</h2>
+            <p class="reveal mt-4 text-lg text-muted" data-i18n="gallerySubtitle" style="transition-delay:140ms">{t.gallerySubtitle.es}</p>
+          </div>
+
+          <div class="reveal mt-12 columns-2 gap-4 md:columns-3 lg:columns-4 [&>*]:mb-4">
+            {galleryPics.map((pic, i) => (
+              <figure class="gal-item break-inside-avoid overflow-hidden rounded-2xl shadow-sm ring-1 ring-black/5">
+                <Image
+                  src={pic}
+                  alt={`Fundación Juan Una Mano Ayuda — momento ${i + 1}`}
+                  widths={[320, 600]}
+                  sizes="(max-width:768px) 50vw, 25vw"
+                  loading="lazy"
+                  class="h-auto w-full object-cover"
+                />
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= TESTIMONIALS ============================= -->
+      <section class="bg-surface-alt py-24 sm:py-32">
+        <div class="mx-auto max-w-7xl px-5 sm:px-8">
+          <div class="mx-auto max-w-2xl text-center">
+            <p class="reveal font-hand text-3xl text-primary" data-i18n="testKicker">{t.testKicker.es}</p>
+            <h2 class="reveal mt-2 text-3xl font-bold sm:text-4xl lg:text-5xl" data-i18n="testTitle" style="transition-delay:80ms">{t.testTitle.es}</h2>
+          </div>
+
+          <div class="mt-14 grid gap-6 lg:grid-cols-3">
+            <figure class="reveal flex flex-col rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
+              <svg class="h-9 w-9 text-primary/30" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-3.638 3.995-5.849h-4v-10h9.983zm14.017 0v7.391c0 5.704-3.748 9.571-9 10.609l-.996-2.151c2.433-.917 3.996-3.638 3.996-5.849h-3.983v-10h9.983z"/></svg>
+              <blockquote class="mt-4 flex-1 font-hand text-2xl leading-snug text-ink/85" data-i18n="t1Quote">{t.t1Quote.es}</blockquote>
+              <figcaption class="mt-6">
+                <p class="font-bold" data-i18n="t1Name">{t.t1Name.es}</p>
+                <p class="text-sm text-muted" data-i18n="t1Role">{t.t1Role.es}</p>
+              </figcaption>
+            </figure>
+            <figure class="reveal flex flex-col rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5" style="transition-delay:90ms">
+              <svg class="h-9 w-9 text-accent/30" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-3.638 3.995-5.849h-4v-10h9.983zm14.017 0v7.391c0 5.704-3.748 9.571-9 10.609l-.996-2.151c2.433-.917 3.996-3.638 3.996-5.849h-3.983v-10h9.983z"/></svg>
+              <blockquote class="mt-4 flex-1 font-hand text-2xl leading-snug text-ink/85" data-i18n="t2Quote">{t.t2Quote.es}</blockquote>
+              <figcaption class="mt-6">
+                <p class="font-bold" data-i18n="t2Name">{t.t2Name.es}</p>
+                <p class="text-sm text-muted" data-i18n="t2Role">{t.t2Role.es}</p>
+              </figcaption>
+            </figure>
+            <figure class="reveal flex flex-col rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5" style="transition-delay:180ms">
+              <svg class="h-9 w-9 text-secondary/30" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-3.638 3.995-5.849h-4v-10h9.983zm14.017 0v7.391c0 5.704-3.748 9.571-9 10.609l-.996-2.151c2.433-.917 3.996-3.638 3.996-5.849h-3.983v-10h9.983z"/></svg>
+              <blockquote class="mt-4 flex-1 font-hand text-2xl leading-snug text-ink/85" data-i18n="t3Quote">{t.t3Quote.es}</blockquote>
+              <figcaption class="mt-6">
+                <p class="font-bold" data-i18n="t3Name">{t.t3Name.es}</p>
+                <p class="text-sm text-muted" data-i18n="t3Role">{t.t3Role.es}</p>
+              </figcaption>
+            </figure>
+          </div>
+          <p class="reveal mt-8 text-center text-xs text-muted/70" data-i18n="testNote">{t.testNote.es}</p>
+        </div>
+      </section>
+
+      <!-- ============================= DONATE ============================= -->
+      <section id="donar" class="relative overflow-hidden bg-surface py-24 sm:py-32">
+        <div class="mx-auto max-w-7xl px-5 sm:px-8">
+          <div class="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
+            <div class="reveal relative order-2 lg:order-1">
+              <Image
+                src={donateImg}
+                alt="Niños beneficiados por la Fundación Juan Una Mano Ayuda"
+                widths={[480, 800, 1100]}
+                sizes="(max-width:1024px) 100vw, 50vw"
+                class="aspect-square w-full rounded-[2.5rem] object-cover shadow-2xl shadow-accent/15"
+              />
+            </div>
+
+            <div class="order-1 lg:order-2">
+              <p class="reveal font-hand text-3xl text-accent" data-i18n="donateKicker">{t.donateKicker.es}</p>
+              <h2 class="reveal mt-2 text-3xl font-bold sm:text-4xl lg:text-5xl" data-i18n="donateTitle" style="transition-delay:80ms">{t.donateTitle.es}</h2>
+              <p class="reveal mt-5 text-lg text-muted" data-i18n="donateSubtitle" style="transition-delay:140ms">{t.donateSubtitle.es}</p>
+
+              <p class="reveal mt-8 text-sm font-semibold uppercase tracking-wide text-muted" data-i18n="amountLabel" style="transition-delay:180ms">{t.amountLabel.es}</p>
+              <div class="reveal mt-3 flex flex-wrap gap-3" style="transition-delay:220ms">
+                <span class="rounded-full border-2 border-primary/20 bg-primary/5 px-6 py-2.5 font-display font-bold text-primary">$20.000</span>
+                <span class="rounded-full border-2 border-primary/20 bg-primary/5 px-6 py-2.5 font-display font-bold text-primary">$50.000</span>
+                <span class="rounded-full border-2 border-primary/20 bg-primary/5 px-6 py-2.5 font-display font-bold text-primary">$100.000</span>
+              </div>
+
+              <p class="reveal mt-9 text-sm font-semibold uppercase tracking-wide text-muted" data-i18n="donateHowTitle" style="transition-delay:240ms">{t.donateHowTitle.es}</p>
+              <div class="reveal mt-3 space-y-4" style="transition-delay:280ms">
+                <div class="flex items-center justify-between gap-4 rounded-2xl border border-black/5 bg-surface-alt p-5">
+                  <div class="min-w-0">
+                    <p class="font-bold text-primary" data-i18n="bankTitle">{t.bankTitle.es}</p>
+                    <p class="text-xs text-muted" data-i18n="bankAccLabel">{t.bankAccLabel.es}</p>
+                    <p class="mt-1 select-all font-display text-lg font-bold tracking-wide">{BANK_ACC}</p>
+                  </div>
+                  <button class="copy-btn btn shrink-0 bg-primary px-4 py-2.5 text-sm text-white hover:bg-primary-dark" data-copy={BANK_ACC} data-i18n="copyBtn" aria-label="Copiar número de cuenta Bancolombia">{t.copyBtn.es}</button>
+                </div>
+                <div class="flex items-center justify-between gap-4 rounded-2xl border border-black/5 bg-surface-alt p-5">
+                  <div class="min-w-0">
+                    <p class="font-bold text-accent" data-i18n="nequiTitle">{t.nequiTitle.es}</p>
+                    <p class="text-xs text-muted" data-i18n="nequiLabel">{t.nequiLabel.es}</p>
+                    <p class="mt-1 select-all font-display text-lg font-bold tracking-wide">{NEQUI}</p>
+                  </div>
+                  <button class="copy-btn btn shrink-0 bg-accent px-4 py-2.5 text-sm text-white hover:bg-accent-dark" data-copy={NEQUI} data-i18n="copyBtn" aria-label="Copiar número Nequi">{t.copyBtn.es}</button>
+                </div>
+              </div>
+
+              <p class="reveal mt-6 text-sm text-muted" data-i18n="donateNote" style="transition-delay:320ms">{t.donateNote.es}</p>
+              <p class="reveal mt-2 text-xs text-muted/80" data-i18n="donateTrust" style="transition-delay:340ms">{t.donateTrust.es}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= CONTACT ============================= -->
+      <section id="contacto" class="bg-primary-dark py-24 text-white sm:py-32">
+        <div class="mx-auto max-w-7xl px-5 sm:px-8">
+          <div class="mx-auto max-w-2xl text-center">
+            <p class="reveal font-hand text-3xl text-secondary" data-i18n="contactKicker">{t.contactKicker.es}</p>
+            <h2 class="reveal mt-2 text-3xl font-bold sm:text-4xl lg:text-5xl" data-i18n="contactTitle" style="transition-delay:80ms">{t.contactTitle.es}</h2>
+            <p class="reveal mt-4 text-lg text-white/80" data-i18n="contactSubtitle" style="transition-delay:140ms">{t.contactSubtitle.es}</p>
+          </div>
+
+          <div class="mx-auto mt-14 grid max-w-4xl gap-5 sm:grid-cols-2">
+            <!-- TODO: reemplazar 'xxx' por dirección, teléfono y correo reales -->
+            <div class="reveal flex items-start gap-4 rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+              <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-white/60" data-i18n="addrLabel">{t.addrLabel.es}</p>
+                <p class="mt-1">xxx, Cartagena de Indias, Colombia</p>
+              </div>
+            </div>
+            <div class="reveal flex items-start gap-4 rounded-2xl bg-white/5 p-6 ring-1 ring-white/10" style="transition-delay:80ms">
+              <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-white/60" data-i18n="phoneLabel">{t.phoneLabel.es}</p>
+                <p class="mt-1">xxx</p>
+              </div>
+            </div>
+            <div class="reveal flex items-start gap-4 rounded-2xl bg-white/5 p-6 ring-1 ring-white/10" style="transition-delay:120ms">
+              <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-white/60" data-i18n="emailLabel">{t.emailLabel.es}</p>
+                <p class="mt-1">xxx</p>
+              </div>
+            </div>
+            <a href={INSTAGRAM} target="_blank" rel="noopener" class="reveal flex items-start gap-4 rounded-2xl bg-white/5 p-6 ring-1 ring-white/10 transition hover:bg-white/10" style="transition-delay:160ms">
+              <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10">
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zm0 10.162a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-white/60" data-i18n="igLabel">{t.igLabel.es}</p>
+                <p class="mt-1">@fjuanunamanoayuda</p>
+              </div>
+            </a>
+          </div>
+
+          <div class="reveal mx-auto mt-10 flex max-w-4xl flex-col gap-3 sm:flex-row sm:justify-center" style="transition-delay:200ms">
+            <!-- TODO: cambiar el número de WhatsApp -->
+            <a href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noopener" class="btn bg-accent px-7 py-3.5 text-white shadow-lg shadow-accent/30 hover:bg-accent-dark" data-i18n="waBtn">{t.waBtn.es}</a>
+            <a href={INSTAGRAM} target="_blank" rel="noopener" class="btn border-2 border-white/70 px-7 py-3.5 text-white hover:bg-white hover:text-primary-dark" data-i18n="igBtn">{t.igBtn.es}</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============================= FOOTER ============================= -->
+    <footer class="bg-ink py-14 text-white/70">
+      <div class="mx-auto max-w-7xl px-5 sm:px-8">
+        <div class="grid gap-10 md:grid-cols-3">
+          <div>
+            <div class="inline-flex rounded-2xl bg-white p-4 shadow-lg">
+              <Image src={sealColor} alt="Logo Fundación Juan Una Mano Ayuda" width={300} height={516} class="h-32 w-auto" />
+            </div>
+            <p class="mt-5 max-w-xs text-sm" data-i18n="footerBlurb">{t.footerBlurb.es}</p>
+          </div>
+          <div>
+            <p class="font-display font-bold text-white" data-i18n="footerLinksTitle">{t.footerLinksTitle.es}</p>
+            <ul class="mt-4 space-y-2 text-sm">
+              <li><a href="#nosotros" class="transition-colors hover:text-white" data-i18n="navAbout">{t.navAbout.es}</a></li>
+              <li><a href="#impacto" class="transition-colors hover:text-white" data-i18n="navImpact">{t.navImpact.es}</a></li>
+              <li><a href="#programas" class="transition-colors hover:text-white" data-i18n="navPrograms">{t.navPrograms.es}</a></li>
+              <li><a href="#donar" class="transition-colors hover:text-white" data-i18n="navDonate">{t.navDonate.es}</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="font-display font-bold text-white" data-i18n="footerContactTitle">{t.footerContactTitle.es}</p>
+            <ul class="mt-4 space-y-2 text-sm">
+              <li>Cartagena de Indias, Colombia</li>
+              <li><a href={INSTAGRAM} target="_blank" rel="noopener" class="transition-colors hover:text-white">@fjuanunamanoayuda</a></li>
+              <li>NIT {NIT}</li>
+            </ul>
+          </div>
+        </div>
+        <div class="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-center text-xs sm:flex-row sm:text-left">
+          <p>© <span id="year"></span> Fundación Juan Una Mano Ayuda. <span data-i18n="footerRights">{t.footerRights.es}</span></p>
+          <p class="font-hand text-lg text-white/80" data-i18n="footerMade">{t.footerMade.es}</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ============================= CLIENT SCRIPT ============================= -->
+    <script define:vars={{ i18n: t }}>
+      (function () {
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        // ---- Year ----
+        const yearEl = document.getElementById("year");
+        if (yearEl) yearEl.textContent = String(new Date().getFullYear());
+
+        // ---- Scroll reveal ----
+        const revealEls = document.querySelectorAll(".reveal");
+        if (reduceMotion || !("IntersectionObserver" in window)) {
+          revealEls.forEach((el) => el.classList.add("is-visible"));
+        } else {
+          const io = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add("is-visible");
+                  io.unobserve(entry.target);
+                }
+              });
+            },
+            { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
+          );
+          revealEls.forEach((el) => io.observe(el));
+        }
+
+        // ---- Animated counters ----
+        const counters = document.querySelectorAll(".stat-num");
+        const runCount = (el) => {
+          const target = parseInt(el.getAttribute("data-count") || "0", 10);
+          const suffix = el.getAttribute("data-suffix") || "";
+          if (reduceMotion) { el.textContent = target + suffix; return; }
+          const duration = 1600;
+          const start = performance.now();
+          const tick = (now) => {
+            const p = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(target * eased) + suffix;
+            if (p < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        };
+        if (!("IntersectionObserver" in window)) {
+          counters.forEach(runCount);
+        } else {
+          const cio = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) { runCount(entry.target); cio.unobserve(entry.target); }
+              });
+            },
+            { threshold: 0.5 }
+          );
+          counters.forEach((el) => cio.observe(el));
+        }
+
+        // ---- Header scroll state (transparent over hero -> solid white) ----
+        const header = document.getElementById("header");
+        const headerLinks = document.querySelectorAll("[data-header-link]");
+        const setHeader = (solid) => {
+          header.classList.toggle("solid", solid);
+          if (solid) {
+            header.classList.add("bg-white/95", "shadow-lg", "backdrop-blur", "py-2.5");
+            header.classList.remove("py-4");
+            headerLinks.forEach((e) => {
+              e.classList.add("text-ink");
+              e.classList.remove("text-white");
+              if (e.classList.contains("border-white")) { e.classList.add("border-ink/30"); e.classList.remove("border-white"); }
+            });
+          } else {
+            header.classList.remove("bg-white/95", "shadow-lg", "backdrop-blur", "py-2.5");
+            header.classList.add("py-4");
+            headerLinks.forEach((e) => {
+              e.classList.remove("text-ink");
+              e.classList.add("text-white");
+              if (e.classList.contains("border-ink/30")) { e.classList.remove("border-ink/30"); e.classList.add("border-white"); }
+            });
+          }
+        };
+        const onScroll = () => setHeader(window.scrollY > 40);
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+
+        // ---- Mobile menu ----
+        const menuBtn = document.getElementById("menu-btn");
+        const menu = document.getElementById("mobile-menu");
+        const toggleMenu = (open) => {
+          menu.classList.toggle("hidden", !open);
+          menuBtn.setAttribute("aria-expanded", String(open));
+        };
+        menuBtn.addEventListener("click", () => toggleMenu(menu.classList.contains("hidden")));
+        document.querySelectorAll(".mobile-link").forEach((a) =>
+          a.addEventListener("click", () => toggleMenu(false))
+        );
+
+        // ---- Language toggle ----
+        const STORAGE_KEY = "juma-lang";
+        const applyLang = (lang) => {
+          document.documentElement.lang = lang;
+          document.querySelectorAll("[data-i18n]").forEach((el) => {
+            const key = el.getAttribute("data-i18n");
+            const entry = i18n[key];
+            if (entry && entry[lang] != null) el.textContent = entry[lang];
+          });
+          document.querySelectorAll("[data-lang-toggle]").forEach((b) => {
+            b.textContent = lang === "es" ? "EN" : "ES";
+          });
+          try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) {}
+        };
+        let current = "es";
+        try { current = localStorage.getItem(STORAGE_KEY) || "es"; } catch (e) {}
+        if (current !== "es") applyLang(current);
+        document.querySelectorAll("[data-lang-toggle]").forEach((b) =>
+          b.addEventListener("click", () => {
+            current = document.documentElement.lang === "es" ? "en" : "es";
+            applyLang(current);
+          })
+        );
+
+        // ---- Copy to clipboard ----
+        document.querySelectorAll(".copy-btn").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const value = btn.getAttribute("data-copy") || "";
+            try {
+              await navigator.clipboard.writeText(value);
+            } catch (e) {
+              const ta = document.createElement("textarea");
+              ta.value = value; document.body.appendChild(ta); ta.select();
+              try { document.execCommand("copy"); } catch (e2) {}
+              document.body.removeChild(ta);
+            }
+            const lang = document.documentElement.lang;
+            btn.textContent = (i18n.copiedMsg && i18n.copiedMsg[lang]) || "OK";
+            setTimeout(() => {
+              btn.textContent = (i18n.copyBtn && i18n.copyBtn[lang]) || "Copy";
+            }, 1600);
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>
