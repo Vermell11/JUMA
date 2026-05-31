@@ -120,6 +120,60 @@ section[id] {
   #hero-zoom { transform: none; }
 }
 
+/* ============================================================
+   NATURALEZA ANIMADA — hojas, pétalos y mariposas flotantes
+   ============================================================ */
+.nature-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.nature-item {
+  position: absolute;
+  top: -8%;
+  opacity: 0;
+  color: var(--color-primary);
+  animation-name: nature-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+.nature-item svg { display: block; width: 100%; height: 100%; }
+
+/* Caída suave con deriva lateral y giro */
+@keyframes nature-fall {
+  0%   { opacity: 0; transform: translateY(-10%) translateX(0) rotate(0deg); }
+  8%   { opacity: var(--leaf-opacity, 0.5); }
+  50%  { transform: translateY(50vh) translateX(var(--drift, 30px)) rotate(160deg); }
+  92%  { opacity: var(--leaf-opacity, 0.5); }
+  100% { opacity: 0; transform: translateY(105vh) translateX(0) rotate(320deg); }
+}
+
+/* Mariposas: aleteo + recorrido en diagonal ascendente */
+.nature-item--fly {
+  top: auto;
+  bottom: -10%;
+  animation-name: nature-fly;
+}
+@keyframes nature-fly {
+  0%   { opacity: 0; transform: translateY(0) translateX(0) rotate(-6deg); }
+  10%  { opacity: var(--leaf-opacity, 0.6); }
+  50%  { transform: translateY(-45vh) translateX(var(--drift, 40px)) rotate(8deg); }
+  90%  { opacity: var(--leaf-opacity, 0.6); }
+  100% { opacity: 0; transform: translateY(-95vh) translateX(calc(var(--drift, 40px) * 1.6)) rotate(-6deg); }
+}
+.nature-item--fly svg { animation: wing 0.9s ease-in-out infinite; transform-origin: center; }
+@keyframes wing {
+  0%, 100% { transform: scaleX(1); }
+  50%      { transform: scaleX(0.55); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nature-layer { display: none; }
+}
+
 /* Header transition */
 .site-header {
   transition: background-color 0.4s ease, box-shadow 0.4s ease, padding 0.35s ease;

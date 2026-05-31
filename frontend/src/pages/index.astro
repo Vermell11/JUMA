@@ -1,6 +1,7 @@
 ---
 import { Image } from "astro:assets";
 import "../styles/global.css";
+import NatureLayer from "../components/NatureLayer.astro";
 import logoColor from "../assets/logo-horizontal.png";
 import logoWhite from "../assets/logo-horizontal-white.png";
 import sealColor from "../assets/logo-stacked.png";
@@ -276,14 +277,11 @@ const WHATSAPP = "57XXXXXXXXXX"; // TODO: reemplazar por número real
                 <source src="/hero/hero.webm" type="video/webm" />
                 <source src="/hero/hero.mp4" type="video/mp4" />
               </video>
-              <div class="absolute inset-0 bg-gradient-to-br from-primary-dark/85 via-primary-dark/60 to-primary/30"></div>
-              <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/10"></div>
+              <!-- Velo sutil solo para legibilidad del texto (izquierda → abajo), sin tinte azul -->
+              <div class="absolute inset-0 bg-gradient-to-r from-black/55 via-black/20 to-transparent"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
             </div>
           </div>
-
-          <!-- Adornos orgánicos -->
-          <div class="blob blob--slow pointer-events-none absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-secondary/30 mix-blend-screen"></div>
-          <div class="blob blob--delay pointer-events-none absolute -right-16 bottom-10 h-80 w-80 rounded-full bg-accent/20 mix-blend-screen"></div>
 
           <!-- Texto del hero (siempre encima y legible) -->
           <div class="relative mx-auto w-full max-w-7xl px-5 sm:px-8">
@@ -356,9 +354,8 @@ const WHATSAPP = "57XXXXXXXXXX"; // TODO: reemplazar por número real
 
       <!-- ============================= IMPACT ============================= -->
       <section id="impacto" class="relative overflow-hidden bg-primary py-20 text-white sm:py-24">
-        <div class="blob pointer-events-none absolute -right-20 -top-16 h-72 w-72 rounded-full bg-white/10"></div>
-        <div class="blob blob--slow pointer-events-none absolute -bottom-24 left-1/4 h-80 w-80 rounded-full bg-primary-dark/40"></div>
-        <div class="relative mx-auto max-w-7xl px-5 sm:px-8">
+        <NatureLayer count={9} variant="mixed" tone="white" />
+        <div class="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
           <div class="mx-auto max-w-2xl text-center">
             <p class="reveal font-hand text-3xl text-white/90" data-i18n="impactKicker">{t.impactKicker.es}</p>
             <h2 class="reveal mt-2 text-3xl font-bold sm:text-4xl" data-i18n="impactTitle" style="transition-delay:80ms">{t.impactTitle.es}</h2>
@@ -385,8 +382,9 @@ const WHATSAPP = "57XXXXXXXXXX"; // TODO: reemplazar por número real
       </section>
 
       <!-- ============================= PROGRAMS ============================= -->
-      <section id="programas" class="bg-surface-alt py-24 sm:py-32">
-        <div class="mx-auto max-w-7xl px-5 sm:px-8">
+      <section id="programas" class="relative overflow-hidden bg-surface-alt py-24 sm:py-32">
+        <NatureLayer count={10} variant="mixed" tone="primary" />
+        <div class="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
           <div class="mx-auto max-w-2xl text-center">
             <p class="reveal font-hand text-3xl text-primary" data-i18n="programsKicker">{t.programsKicker.es}</p>
             <h2 class="reveal mt-2 text-3xl font-bold sm:text-4xl lg:text-5xl" data-i18n="programsTitle" style="transition-delay:80ms">{t.programsTitle.es}</h2>
@@ -558,8 +556,9 @@ const WHATSAPP = "57XXXXXXXXXX"; // TODO: reemplazar por número real
       </section>
 
       <!-- ============================= CONTACT ============================= -->
-      <section id="contacto" class="bg-primary-dark py-24 text-white sm:py-32">
-        <div class="mx-auto max-w-7xl px-5 sm:px-8">
+      <section id="contacto" class="relative overflow-hidden bg-primary-dark py-24 text-white sm:py-32">
+        <NatureLayer count={8} variant="mixed" tone="white" />
+        <div class="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
           <div class="mx-auto max-w-2xl text-center">
             <p class="reveal font-hand text-3xl text-secondary" data-i18n="contactKicker">{t.contactKicker.es}</p>
             <h2 class="reveal mt-2 text-3xl font-bold sm:text-4xl lg:text-5xl" data-i18n="contactTitle" style="transition-delay:80ms">{t.contactTitle.es}</h2>
