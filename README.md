@@ -4,16 +4,23 @@ Sitio web **one-page**, **bilingüe (ES/EN)**, construido con **Astro + Tailwind
 Diseño premium, humano y minimalista, con animaciones suaves y accesibles
 (respeta `prefers-reduced-motion`) y 100% responsive.
 
-## 🚀 Cómo ejecutarlo
+## 🚀 Cómo ejecutarlo (también al cambiar de PC)
+
+Solo necesitas tener **Node.js** instalado. Las dependencias se definen en
+`package.json` (+ versiones exactas en `package-lock.json`), así que:
 
 ```bash
-npm install        # instalar dependencias (solo la primera vez)
+git clone https://github.com/Vermell11/JUMA.git
+cd JUMA
+npm install        # reinstala TODAS las dependencias (equivale al requirements.txt de Python)
 npm run dev        # servidor de desarrollo → http://localhost:4321
 npm run build      # genera el sitio estático en dist/
 npm run preview    # previsualiza el build de producción
+npm run assets     # regenera logos/fotos desde design-source/ (solo si cambias originales)
 ```
 
-> Si cambias fotos o logos, re-ejecuta `node _build_assets.mjs` y luego `npm run build`.
+> ℹ️ Este es un proyecto **Node/Astro**, no Python: no usa `requirements.txt`.
+> Su equivalente exacto es `package.json`, que ya está versionado en Git.
 
 ## 📦 Despliegue
 
@@ -26,10 +33,10 @@ Sitio **100% estático** (carpeta `dist/`). Opciones gratuitas:
 - **Colores:** Primario `#0077C8`, Primario oscuro `#005EA0`, Secundario `#1A8FE3`,
   Acento `#E53935`, Texto `#1A1A1A` / `#5B6470`, Fondos `#FFFFFF` / `#F8FAFC`.
 - **Tipografías:** Poppins (títulos), Inter (texto), Caveat (frases emotivas).
-- **Logos:** generados desde `Logos/Logo01.png` (horizontal) y `Logo02.png` (apilado).
+- **Logos:** generados desde `design-source/Logos/Logo01.png` (horizontal) y `Logo02.png` (apilado).
   - Navbar: logo horizontal que pasa de **blanco → color** al hacer scroll.
   - Footer: logo apilado a color sobre tarjeta blanca.
-- **Fotos:** seleccionadas de `Fotos/` (159 originales), optimizadas automáticamente
+- **Fotos:** seleccionadas de `design-source/Fotos/` (159 originales), optimizadas automáticamente
   por Astro a **WebP** en varios tamaños (srcset + lazy loading).
 
 ## ✨ Secciones (one-page)
@@ -65,16 +72,19 @@ Edita `src/pages/index.astro`:
 
 ```
 src/
-  pages/index.astro     ← toda la página + diccionario ES/EN + animaciones
-  styles/global.css     ← tema de marca, animaciones, accesibilidad
-  assets/               ← logos (color + blanco) + fotos (optimizadas por Astro)
-public/favicon.png      ← favicon
-_build_assets.mjs       ← script (sharp) que recorta logos y selecciona fotos
-Fotos/  Logos/          ← originales (no se publican)
+  pages/index.astro       ← toda la página + diccionario ES/EN + animaciones
+  styles/global.css       ← tema de marca, animaciones, accesibilidad
+  assets/                 ← logos (color + blanco) + fotos usadas (optimizadas por Astro)
+public/favicon.png        ← favicon
+scripts/build-assets.mjs  ← script (sharp) que recorta logos y selecciona fotos · `npm run assets`
+design-source/            ← material original de la fundación (respaldo)
+  Fotos/                  ← 159 fotos originales
+  Logos/                  ← logos PNG + PDFs de marca
+astro.config.mjs, package.json, tsconfig.json   ← config (deben ir en la raíz)
 ```
 
 ## 🔧 Cómo cambiar las fotos
 
 Las imágenes clave son `src/assets/hero.jpeg`, `about.jpeg`, `donate.jpeg` y la galería
 `src/assets/gallery/g01..g12.jpeg`. Reemplaza el archivo por otro con el mismo nombre
-(o ajusta los índices en `_build_assets.mjs`) y vuelve a `npm run build`.
+(o ajusta los índices en `scripts/build-assets.mjs` y corre `npm run assets`) y vuelve a `npm run build`.

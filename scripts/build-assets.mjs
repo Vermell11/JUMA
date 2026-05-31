@@ -18,8 +18,8 @@ async function trim(input, output, maxW) {
   const m = await sharp(output).metadata();
   console.log(`trim ${path.basename(output)} ${m.width}x${m.height}`);
 }
-await trim(A('Logos/Logo01.png'), A('src/assets/logo-horizontal.png'), 1400);
-await trim(A('Logos/Logo02.png'), A('src/assets/logo-stacked.png'), 1200);
+await trim(A('design-source/Logos/Logo01.png'), A('src/assets/logo-horizontal.png'), 1400);
+await trim(A('design-source/Logos/Logo02.png'), A('src/assets/logo-stacked.png'), 1200);
 
 // ---- 2. White versions (alpha mask -> white fill) for dark backgrounds ----
 async function whiteVersion(input, output) {
@@ -47,9 +47,9 @@ await sharp({ create: { width: 256, height: 256, channels: 4, background: { r: 2
 console.log('favicon 256x256');
 
 // ---- 4. Pick photos ----
-const files = fs.readdirSync(A('Fotos')).filter((f) => /\.jpe?g$/i.test(f)).sort();
+const files = fs.readdirSync(A('design-source/Fotos')).filter((f) => /\.jpe?g$/i.test(f)).sort();
 console.log('total fotos:', files.length);
-const F = (idx) => A(path.join('Fotos', files[idx - 1]));
+const F = (idx) => A(path.join('design-source/Fotos', files[idx - 1]));
 
 // Clean gallery
 fs.rmSync(A('src/assets/gallery'), { recursive: true, force: true });
