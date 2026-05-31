@@ -95,6 +95,31 @@ section[id] {
 }
 .scroll-hint { animation: bob 2.2s ease-in-out infinite; }
 
+/* ============================================================
+   HERO — ventana de video que se expande al hacer scroll
+   ============================================================ */
+.hero-scroll {
+  /* Altura total = 1 pantalla fija + recorrido de scroll para la animación */
+  height: 200vh;
+}
+#hero-clip {
+  /* Estado inicial: ventana centrada con bordes redondeados (lo anima el JS) */
+  clip-path: inset(14% 14% 14% 14% round 32px);
+  will-change: clip-path;
+}
+#hero-zoom {
+  transform: scale(1.18);
+  transform-origin: center;
+  will-change: transform;
+}
+/* Sin JS o con movimiento reducido: ventana abierta del todo desde el inicio */
+@media (prefers-reduced-motion: reduce) {
+  .hero-scroll { height: auto; }
+  .hero-scroll .hero-pin { position: relative; }
+  #hero-clip { clip-path: inset(0 0 0 0 round 0); }
+  #hero-zoom { transform: none; }
+}
+
 /* Header transition */
 .site-header {
   transition: background-color 0.4s ease, box-shadow 0.4s ease, padding 0.35s ease;

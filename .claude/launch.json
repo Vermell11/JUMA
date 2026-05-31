@@ -4,7 +4,7 @@
     {
       "name": "juma-preview",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "preview"],
+      "runtimeArgs": ["run", "preview", "--prefix", "frontend"],
       "port": 4321
     }
   ]
