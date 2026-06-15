@@ -257,29 +257,25 @@ const WHATSAPP = "57XXXXXXXXXX"; // TODO: reemplazar por número real
           <!-- Campo de marca de fondo (visible alrededor de la ventana al inicio) -->
           <div class="absolute inset-0 bg-gradient-to-br from-primary-dark via-primary-dark to-primary"></div>
 
-          <!-- Ventana recortada (clip-path) con el video animado -->
+          <!-- Ventana recortada (clip-path) que se expande al hacer scroll -->
           <div id="hero-clip" class="absolute inset-0">
             <div id="hero-zoom" class="absolute inset-0">
-              <!-- Póster: carga inmediata + fallback (prefers-reduced-motion / sin video) -->
+              <!-- Capa 1: paisaje de fondo -->
               <img
-                src="/hero/hero-poster.jpg"
-                alt="Ilustración de niños de la comunidad de Santa Rosa jugando en el campo, Fundación Juan Una Mano Ayuda"
+                src="/hero/fondo.webp"
+                alt="Paisaje de campo al atardecer, comunidad de Santa Rosa, Cartagena"
                 fetchpriority="high"
                 class="absolute inset-0 h-full w-full object-cover object-center"
               />
-              <video
-                id="hero-video"
-                class="motion-safe:block hidden absolute inset-0 h-full w-full object-cover object-center"
-                autoplay loop muted playsinline preload="auto"
-                poster="/hero/hero-poster.jpg"
-                aria-hidden="true" tabindex="-1"
-              >
-                <source src="/hero/hero.webm" type="video/webm" />
-                <source src="/hero/hero.mp4" type="video/mp4" />
-              </video>
-              <!-- Velo sutil solo para legibilidad del texto (izquierda → abajo), sin tinte azul -->
-              <div class="absolute inset-0 bg-gradient-to-r from-black/55 via-black/20 to-transparent"></div>
-              <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+              <!-- Capa 2: personaje animado (Milo) — secuencia de frames con transparencia -->
+              <canvas
+                id="hero-milo"
+                class="motion-safe:block hidden pointer-events-none absolute bottom-[4%] right-[3%] z-10 h-[34%] w-auto sm:right-[5%] sm:h-[40%] lg:h-[48%]"
+                aria-hidden="true"
+              ></canvas>
+              <!-- Velo sutil solo para legibilidad del texto (izquierda → abajo) -->
+              <div class="absolute inset-0 bg-gradient-to-r from-black/50 via-black/15 to-transparent"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent"></div>
             </div>
           </div>
 
@@ -691,6 +687,51 @@ const WHATSAPP = "57XXXXXXXXXX"; // TODO: reemplazar por número real
             window.addEventListener("scroll", onScroll, { passive: true });
             window.addEventListener("resize", onScroll, { passive: true });
           }
+        }
+
+        // ---- Hero: personaje animado (Milo) por secuencia de frames en canvas ----
+        const miloCanvas = document.getElementById("hero-milo");
+        if (miloCanvas && !reduceMotion) {
+          const FRAME_COUNT = 98;
+          const FPS = 12;
+          const ASPECT = 406 / 720; // alto/ancho del bbox global (ver public/hero/milo-frames/meta.json)
+          const ctx = miloCanvas.getContext("2d");
+          const frames = [];
+          let loaded = 0;
+          let ready = false;
+          for (let i = 0; i < FRAME_COUNT; i++) {
+            const im = new Image();
+            im.src = `/hero/milo-frames/f${String(i).padStart(3, "0")}.webp`;
+            im.onload = () => { if (++loaded >= FRAME_COUNT) ready = true; };
+            im.onerror = () => { if (++loaded >= FRAME_COUNT) ready = true; };
+            frames.push(im);
+          }
+          // Tamaño interno del canvas según su altura CSS renderizada
+          const sizeCanvas = () => {
+            const h = miloCanvas.clientHeight || 300;
+            const w = h / ASPECT;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            miloCanvas.width = Math.round(w * dpr);
+            miloCanvas.height = Math.round(h * dpr);
+            miloCanvas.style.width = w + "px";
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          };
+          sizeCanvas();
+          window.addEventListener("resize", sizeCanvas, { passive: true });
+          let idx = 0, last = 0;
+          const interval = 1000 / FPS;
+          const draw = (now) => {
+            if (ready && now - last >= interval) {
+              last = now;
+              const im = frames[idx];
+              const cw = miloCanvas.clientWidth, ch = miloCanvas.clientHeight;
+              ctx.clearRect(0, 0, cw, ch);
+              if (im && im.complete && im.naturalWidth) ctx.drawImage(im, 0, 0, cw, ch);
+              idx = (idx + 1) % FRAME_COUNT;
+            }
+            requestAnimationFrame(draw);
+          };
+          requestAnimationFrame(draw);
         }
 
         // ---- Scroll reveal ----

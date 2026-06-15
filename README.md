@@ -54,11 +54,17 @@ Sitio **100% estático** (carpeta `frontend/dist/`). Opciones gratuitas:
   - Footer: logo apilado a color sobre tarjeta blanca.
 - **Fotos:** seleccionadas de `design-source/Fotos/` (159 originales), optimizadas automáticamente
   por Astro a **WebP** en varios tamaños (srcset + lazy loading).
+- **Hero animado:** una "ventana" que se expande con el scroll, compuesta por un paisaje
+  (`public/hero/fondo.webp`) y un personaje animado (Milo) reproducido como secuencia de
+  frames WebP con transparencia (`public/hero/milo-frames/`) en un `<canvas>`.
 
 ## ✨ Secciones (one-page)
 
-Inicio (hero) · Nosotros (misión/visión + versículo) · Impacto (contadores animados) ·
+Inicio (hero animado) · Nosotros (misión/visión + versículo) · Impacto (contadores animados) ·
 Programas (6) · Galería (12 fotos, masonry) · Testimonios · Donar · Contacto · Footer.
+
+Detalle decorativo: la capa `NatureLayer` (hojas, pétalos y mariposas flotantes) aparece
+en varias secciones. Todas las animaciones respetan `prefers-reduced-motion`.
 
 ## ✅ Datos ya integrados
 
@@ -102,6 +108,10 @@ frontend/
 
 ## 🔧 Cómo cambiar las fotos
 
-Las imágenes clave son `frontend/src/assets/hero.jpeg`, `about.jpeg`, `donate.jpeg` y la galería
+Las imágenes clave son `frontend/src/assets/about.jpeg`, `donate.jpeg` y la galería
 `frontend/src/assets/gallery/g01..g12.jpeg`. Reemplaza el archivo por otro con el mismo nombre
 (o ajusta los índices en `frontend/scripts/build-assets.mjs` y corre `npm run assets`) y vuelve a `npm run build`.
+
+El paisaje y el personaje del hero viven en `frontend/public/hero/` (`fondo.webp` y la carpeta
+`milo-frames/`). Sus fuentes en alta resolución se guardan en `frontend/design-source/` (no se
+versionan los videos por su peso; ver `.gitignore`).

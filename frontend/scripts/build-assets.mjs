@@ -55,7 +55,6 @@ const F = (idx) => A(path.join('design-source/Fotos', files[idx - 1]));
 fs.rmSync(A('src/assets/gallery'), { recursive: true, force: true });
 fs.mkdirSync(A('src/assets/gallery'), { recursive: true });
 
-fs.copyFileSync(F(15), A('src/assets/hero.jpeg'));
 fs.copyFileSync(F(31), A('src/assets/about.jpeg'));
 fs.copyFileSync(F(99), A('src/assets/donate.jpeg'));
 
@@ -63,7 +62,7 @@ const gal = [8, 12, 35, 45, 60, 70, 107, 113, 128, 133, 146, 156];
 gal.forEach((idx, i) => fs.copyFileSync(F(idx), A(`src/assets/gallery/g${String(i + 1).padStart(2, '0')}.jpeg`)));
 
 // dimensions report for chosen key images
-for (const [name, idx] of [['hero', 15], ['about', 31], ['donate', 99]]) {
+for (const [name, idx] of [['about', 31], ['donate', 99]]) {
   const m = await sharp(F(idx)).metadata();
   console.log(`${name}=foto${idx} ${m.width}x${m.height}`);
 }
