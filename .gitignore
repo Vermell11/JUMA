@@ -24,3 +24,6 @@ __pycache__/
 # Raw video sources — backups only, too heavy for git.
 # The site uses the generated frames in frontend/public/hero/ instead.
 frontend/design-source/videos/
+
+# Design delivery package (already integrated into frontend/) — local reference only.
+/Public/
