@@ -47,16 +47,43 @@
 
   /* ---------- header solid on scroll ---------- */
   const header=document.querySelector('.site-header');
+  const progress=document.querySelector('.scroll-progress span');
+  const hero=document.querySelector('.hero');
   function onScroll(){
     if(header) header.classList.toggle('solid', window.scrollY>60);
+    if(progress){
+      const max=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
+      document.documentElement.style.setProperty('--scroll-pct',(window.scrollY/max).toFixed(4));
+    }
+    if(hero&&!reduce){
+      const rect=hero.getBoundingClientRect();
+      const span=Math.max(1,hero.offsetHeight-window.innerHeight);
+      const k=Math.min(1,Math.max(0,-rect.top/span));
+      document.documentElement.style.setProperty('--hero-y',`${(k*42).toFixed(1)}px`);
+      document.documentElement.style.setProperty('--hero-scale',(1+k*.055).toFixed(3));
+      document.documentElement.style.setProperty('--hero-copy-y',`${(-k*26).toFixed(1)}px`);
+      document.documentElement.style.setProperty('--hero-copy-opacity',(1-k*.28).toFixed(3));
+    }
   }
   window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+  window.addEventListener('resize',onScroll,{passive:true});
 
   /* ---------- mobile menu ---------- */
   const menu=document.querySelector('.mobile-menu');
+  const menuBtn=document.querySelector('[data-menu-toggle]');
+  if(menuBtn) menuBtn.setAttribute('aria-expanded','false');
+  function setMenu(open){
+    if(!menu)return;
+    menu.classList.toggle('open',open);
+    if(menuBtn) menuBtn.setAttribute('aria-expanded',open?'true':'false');
+    document.body.classList.toggle('menu-open',open);
+  }
   document.addEventListener('click',e=>{
-    if(e.target.closest('[data-menu-toggle]')) menu.classList.toggle('open');
-    else if(e.target.closest('.mobile-menu a')) menu.classList.remove('open');
+    if(e.target.closest('[data-menu-toggle]')) setMenu(!menu.classList.contains('open'));
+    else if(e.target.closest('.mobile-menu a')) setMenu(false);
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&menu&&menu.classList.contains('open')) setMenu(false);
   });
 
   /* ---------- scroll reveal ---------- */
