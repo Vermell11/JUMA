@@ -1,62 +1,63 @@
 /* ============================================================
-   Hero · "El mundo que dibujan"
-   SVG puro (sin frameworks). Escena infantil dibujada a crayón:
-   · Textura crayón real vía filtros SVG (feTurbulence +
-     feDisplacementMap para el temblor + grano para la cera).
-   · El paisaje se traza al cargar; el sol sale, las casas
-     brotan, los niños crecen del suelo y los corazones flotan.
-   · Ambiente continuo (sol, nubes, pájaros) con requestAnimationFrame.
-   Respeta prefers-reduced-motion (escena fija, sin movimiento).
+   Hero V2.5 · Portada de crayón vivo
+   Escena SVG artesanal: líneas irregulares, relleno por trazos y
+   una intro donde primero se dibuja y luego se colorea.
+   Mantiene window.__jumaHeroCamera(t) para el scroll existente.
    ============================================================ */
 (function () {
   const host = document.getElementById('hero-canvas');
   if (!host) return;
+
   const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
   const NS = 'http://www.w3.org/2000/svg';
-  const INK = '#3a2a1e';            // marrón "crayón" cálido (no negro plano)
-  const W = 1600, H = 1000;
+  const W = 1600;
+  const H = 1000;
+  const INK = '#4A3A2A';
 
   const el = (tag, attrs, kids) => {
-    const e = document.createElementNS(NS, tag);
-    for (const k in attrs) e.setAttribute(k, attrs[k]);
-    if (kids) kids.forEach((c) => e.appendChild(c));
-    return e;
+    const node = document.createElementNS(NS, tag);
+    Object.entries(attrs || {}).forEach(([key, value]) => node.setAttribute(key, value));
+    (kids || []).forEach((child) => node.appendChild(child));
+    return node;
   };
 
-  // ---- SVG raíz + defs (filtros crayón) ----
   const svg = el('svg', {
-    viewBox: `0 0 ${W} ${H}`, width: '100%', height: '100%',
-    preserveAspectRatio: 'xMidYMax slice', style: 'display:block',
+    viewBox: `0 0 ${W} ${H}`,
+    width: '100%',
+    height: '100%',
+    preserveAspectRatio: 'xMidYMax slice',
+    style: 'display:block',
   });
+
   svg.innerHTML = `
     <defs>
-      <!-- Temblor de crayón: desplaza los trazos con ruido -->
-      <filter id="crayon" x="-6%" y="-6%" width="112%" height="112%">
-        <feTurbulence type="fractalNoise" baseFrequency="0.018 0.022" numOctaves="3" seed="7" result="n"/>
-        <feDisplacementMap in="SourceGraphic" in2="n" scale="7" xChannelSelector="R" yChannelSelector="G"/>
+      <filter id="rough-line" x="-8%" y="-8%" width="116%" height="116%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.021 0.027" numOctaves="3" seed="18" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="5.5" xChannelSelector="R" yChannelSelector="G"/>
       </filter>
-      <!-- Crayón fuerte para rellenos (más temblor) -->
-      <filter id="crayonRough" x="-8%" y="-8%" width="116%" height="116%">
-        <feTurbulence type="fractalNoise" baseFrequency="0.012 0.016" numOctaves="3" seed="3" result="n"/>
-        <feDisplacementMap in="SourceGraphic" in2="n" scale="11" xChannelSelector="R" yChannelSelector="G"/>
-      </filter>
-      <!-- Grano de cera: textura sobre los rellenos -->
-      <filter id="grain">
-        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="11" result="g"/>
-        <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .08 0"/>
+      <filter id="wax" x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.74" numOctaves="2" seed="12" result="grain"/>
+        <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .11 0"/>
         <feComposite operator="in" in2="SourceGraphic"/>
         <feBlend in="SourceGraphic" mode="multiply"/>
       </filter>
+      <clipPath id="clip-sky"><path d="M0,0 H1600 V585 C1260,535 1010,585 760,552 C472,514 248,592 0,548 Z"/></clipPath>
+      <clipPath id="clip-hill-back"><path d="M0,560 C255,520 432,500 674,545 C902,586 1090,526 1320,546 C1448,558 1530,582 1600,568 V1000 H0 Z"/></clipPath>
+      <clipPath id="clip-hill-front"><path d="M0,720 C262,668 512,692 720,730 C945,770 1166,690 1600,718 V1000 H0 Z"/></clipPath>
+      <clipPath id="clip-church"><path d="M930,440 L1044,332 L1162,440 L1144,454 L1144,654 C1112,662 1016,666 936,654 L936,454 Z"/></clipPath>
+      <clipPath id="clip-house-left"><path d="M500,518 L604,430 L712,518 L696,532 L696,660 L516,660 L516,532 Z"/></clipPath>
+      <clipPath id="clip-house-right"><path d="M1244,548 L1328,474 L1420,548 L1404,560 L1404,666 L1260,666 L1260,560 Z"/></clipPath>
+      <clipPath id="clip-sun"><circle cx="1320" cy="204" r="90"/></clipPath>
     </defs>
   `;
-  const root = el('g', {});
-  svg.appendChild(root);
-  host.appendChild(svg);
+
+  const scene = el('g', {});
+  svg.appendChild(scene);
+  host.replaceChildren(svg);
 
   const camera = {
     full: { x: 0, y: 0, w: W, h: H },
-    // Puerta de la iglesia: punto focal del dolly de scroll.
-    door: { x: 1000, y: 508, w: 170, h: 106.25 },
+    door: { x: 988, y: 508, w: 145, h: 92 },
   };
   const mix = (a, b, t) => a + (b - a) * t;
   let lastCamera = -1;
@@ -64,265 +65,212 @@
     const k = Math.max(0, Math.min(1, t || 0));
     if (Math.abs(k - lastCamera) < 0.002) return;
     lastCamera = k;
-    const x = mix(camera.full.x, camera.door.x, k);
-    const y = mix(camera.full.y, camera.door.y, k);
-    const w = mix(camera.full.w, camera.door.w, k);
-    const h = mix(camera.full.h, camera.door.h, k);
-    svg.setAttribute('viewBox', `${x.toFixed(2)} ${y.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`);
+    svg.setAttribute(
+      'viewBox',
+      [
+        mix(camera.full.x, camera.door.x, k),
+        mix(camera.full.y, camera.door.y, k),
+        mix(camera.full.w, camera.door.w, k),
+        mix(camera.full.h, camera.door.h, k),
+      ].map((v) => v.toFixed(2)).join(' '),
+    );
   };
 
-  // trazo crayón: línea con dasharray para "dibujarse"
-  const ink = (d, w, extra) =>
-    el('path', Object.assign({ d, fill: 'none', stroke: INK, 'stroke-width': w || 6,
-      'stroke-linecap': 'round', 'stroke-linejoin': 'round', class: 'hk-ink' }, extra || {}));
-  // relleno crayón (con grano)
-  const fill = (tag, attrs) => el(tag, Object.assign({ filter: 'url(#grain)' }, attrs));
+  const path = (d, attrs) => el('path', Object.assign({
+    d,
+    fill: 'none',
+    stroke: INK,
+    'stroke-width': 8,
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'round',
+    filter: 'url(#rough-line)',
+    class: 'draw-line',
+  }, attrs || {}));
 
-  // ============ CIELO ============
-  // Sol (un solo grupo: rayos + disco juntos, así nunca se separan)
-  const cx = 1330, cy = 250, r = 92;
-  let rayD = '';
-  for (let i = 0; i < 12; i++) {
-    const a = (i * Math.PI) / 6;
-    rayD += `M${(cx + Math.cos(a) * (r + 16)).toFixed(1)},${(cy + Math.sin(a) * (r + 16)).toFixed(1)} ` +
-            `L${(cx + Math.cos(a) * (r + 50)).toFixed(1)},${(cy + Math.sin(a) * (r + 50)).toFixed(1)} `;
+  const fillPath = (d, attrs) => el('path', Object.assign({
+    d,
+    filter: 'url(#wax)',
+    class: 'color-shape',
+  }, attrs || {}));
+
+  function scribble(clipId, color, y0, y1, step, tilt, width, cls) {
+    const g = el('g', { 'clip-path': `url(#${clipId})`, class: `scribble-fill ${cls || ''}`.trim() });
+    let i = 0;
+    for (let y = y0; y <= y1; y += step) {
+      const wobble = (i % 4) * 10;
+      g.appendChild(path(
+        `M${-80 + wobble},${y} C260,${y - 28 + wobble} 510,${y + 32 - wobble} 820,${y - 4} C1110,${y - 38 + wobble} 1320,${y + 22} 1680,${y - 10}`,
+        {
+          stroke: color,
+          'stroke-width': width,
+          opacity: 0.58,
+          transform: `rotate(${tilt} 800 ${y})`,
+          class: 'color-line',
+          filter: 'url(#rough-line)',
+        },
+      ));
+      i += 1;
+    }
+    return g;
   }
-  const sun = el('g', { class: 'hk-rise', 'data-rise': '70' });
-  const sunSpin = el('g', { class: 'hk-sun' });
-  sunSpin.appendChild(ink(rayD, 7, { stroke: '#F2A91E' }));
-  sun.appendChild(sunSpin);
-  sun.appendChild(fill('circle', { cx, cy, r, fill: '#FFC84D', stroke: INK, 'stroke-width': 6 }));
-  sun.appendChild(ink(`M${cx - 30},${cy - 6} h0.1 M${cx + 30},${cy - 6} h0.1`, 12, { stroke: '#9A5B12' }));
-  sun.appendChild(ink(`M${cx - 28},${cy + 22} q28,26 56,0`, 6, { stroke: '#9A5B12' }));
-  root.appendChild(sun);
 
-  // Nubes (contorno único de crayón, sin círculos superpuestos)
-  const cloud = (x, y, s) => {
-    const g = el('g', { transform: `translate(${x} ${y}) scale(${s})` });
-    const d = 'M-98,28 C-122,26 -132,2 -111,-13 C-101,-45 -58,-45 -42,-21 C-20,-61 42,-56 54,-18 C89,-23 119,-2 112,27 C106,54 68,55 36,48 C6,61 -32,56 -52,42 C-73,49 -91,45 -98,28 Z';
-    g.appendChild(el('path', {
-      d,
-      fill: 'rgba(255,255,255,.34)',
-      stroke: '#3a2a1e',
-      'stroke-width': '7',
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'round',
-      filter: 'url(#crayon)',
-      opacity: '.78',
-    }));
-    g.appendChild(el('path', {
-      d: 'M-78,25 C-42,35 -18,30 8,37 C42,45 72,37 91,25',
-      fill: 'none',
-      stroke: '#8DB8D6',
-      'stroke-width': '4',
-      'stroke-linecap': 'round',
-      opacity: '.55',
-    }));
-    return g;
-  };
-  const cloud1 = el('g', { class: 'hk-cloud', 'data-amp': '26', 'data-spd': '0.10' }, [cloud(980, 165, 1)]);
-  const cloud2 = el('g', { class: 'hk-cloud', 'data-amp': '-20', 'data-spd': '0.07' }, [cloud(1240, 270, 0.7)]);
-  root.appendChild(cloud1); root.appendChild(cloud2);
+  function roughRect(x, y, w, h, r) {
+    return `M${x + r},${y + 4} C${x + w * .33},${y - 4} ${x + w * .66},${y + 5} ${x + w - r},${y + 2}
+      Q${x + w + 7},${y + 2} ${x + w - 1},${y + r}
+      C${x + w + 2},${y + h * .38} ${x + w - 4},${y + h * .64} ${x + w + 1},${y + h - r}
+      Q${x + w - 2},${y + h + 5} ${x + w - r},${y + h}
+      C${x + w * .68},${y + h + 8} ${x + w * .35},${y + h - 7} ${x + r},${y + h + 1}
+      Q${x - 5},${y + h - 1} ${x + 2},${y + h - r}
+      C${x - 4},${y + h * .64} ${x + 4},${y + h * .34} ${x},${y + r}
+      Q${x + 1},${y + 1} ${x + r},${y + 4} Z`;
+  }
 
-  // Pájaros
-  const birds = el('g', { class: 'hk-birds' }, [
-    ink('M720,250 q15,-15 30,0 q15,-15 30,0 M820,220 q13,-13 26,0 q13,-13 26,0 M670,292 q12,-12 24,0 q12,-12 24,0', 5),
+  const paper = el('g', { class: 'paper-base' }, [
+    fillPath('M0,0 H1600 V1000 H0 Z', { fill: '#FFF7EA', opacity: 1 }),
   ]);
-  root.appendChild(birds);
+  scene.appendChild(paper);
 
-  // ============ COLINAS ============
-  root.appendChild(fill('path', { d: 'M0,602 Q420,540 820,576 T1600,556 L1600,1000 L0,1000 Z', fill: '#A9D08A', class: 'hk-fill' }));
-  root.appendChild(ink('M0,602 Q420,540 820,576 T1600,556', 6, { class: 'hk-ink', 'data-draw': '1' }));
+  const colorLayer = el('g', { class: 'hero-color-layer' });
+  colorLayer.appendChild(scribble('clip-sky', '#A7D9F7', 20, 570, 24, -1.2, 18, 'sky-color'));
+  colorLayer.appendChild(scribble('clip-hill-back', '#B8DB94', 520, 930, 22, .7, 19, 'hill-color'));
+  colorLayer.appendChild(scribble('clip-hill-front', '#79BD59', 666, 1040, 21, -.5, 18, 'grass-color'));
+  colorLayer.appendChild(scribble('clip-church', '#F8F3E7', 366, 670, 18, -1.4, 20, 'church-wall-color'));
+  colorLayer.appendChild(scribble('clip-house-left', '#F19A79', 460, 664, 17, 1.4, 18, 'house-color'));
+  colorLayer.appendChild(scribble('clip-house-right', '#F7CB48', 492, 674, 17, -1.2, 18, 'house-color'));
+  colorLayer.appendChild(scribble('clip-sun', '#F9BF35', 120, 292, 15, 9, 20, 'sun-color'));
+  scene.appendChild(colorLayer);
 
-  // ============ CASAS + IGLESIA ============
-  const house = (x, y, bw, bh, rh, wall, roof) => {
-    const g = el('g', { class: 'hk-pop', 'data-o': `${x + bw / 2},${y + bh}` });
-    g.appendChild(fill('rect', { x, y, width: bw, height: bh, rx: 6, fill: wall, stroke: INK, 'stroke-width': 6 }));
-    g.appendChild(fill('polygon', { points: `${x - 12},${y} ${x + bw / 2},${y - rh} ${x + bw + 12},${y}`, fill: roof, stroke: INK, 'stroke-width': 6, 'stroke-linejoin': 'round' }));
-    g.appendChild(fill('rect', { x: x + bw / 2 - 19, y: y + bh - 52, width: 38, height: 52, rx: 4, fill: '#7A4A36', stroke: INK, 'stroke-width': 5 }));
-    g.appendChild(fill('rect', { x: x + 14, y: y + 18, width: 26, height: 26, rx: 4, fill: '#FBF7EF', stroke: INK, 'stroke-width': 5 }));
-    return g;
-  };
-  root.appendChild(house(556, 500, 140, 108, 62, '#F2906F', '#D9694B'));
-  // iglesia
-  (function () {
-    const x = 1010, y = 470, bw = 150, bh = 140;
-    const g = el('g', { class: 'hk-pop', 'data-o': `${x + bw / 2},${y + bh}` });
-    g.appendChild(fill('rect', { x, y, width: bw, height: bh, rx: 6, fill: '#FCFAF4', stroke: INK, 'stroke-width': 6 }));
-    g.appendChild(fill('polygon', { points: `${x - 12},${y} ${x + bw / 2},${y - 70} ${x + bw + 12},${y}`, fill: '#2E6DA6', stroke: INK, 'stroke-width': 6, 'stroke-linejoin': 'round' }));
-    g.appendChild(ink(`M${x + bw / 2},${y - 70} L${x + bw / 2},${y - 118} M${x + bw / 2 - 16},${y - 100} L${x + bw / 2 + 16},${y - 100}`, 7));
-    g.appendChild(fill('path', { d: `M${x + bw / 2 - 24},${y + bh} L${x + bw / 2 - 24},${y + bh - 58} a24,24 0 0 1 48,0 L${x + bw / 2 + 24},${y + bh} Z`, fill: '#2E6DA6', stroke: INK, 'stroke-width': 5 }));
-    g.appendChild(fill('circle', { cx: x + bw / 2, cy: y + 34, r: 15, fill: '#9FCBEC', stroke: INK, 'stroke-width': 5 }));
-    root.appendChild(g);
-  })();
-  root.appendChild(house(1296, 516, 124, 96, 56, '#FBD24D', '#E0A92E'));
+  const lineLayer = el('g', { class: 'hero-line-layer' });
+  lineLayer.appendChild(path('M0,552 C255,512 444,500 674,545 C902,586 1092,526 1320,546 C1452,558 1534,582 1600,568', { 'stroke-width': 7 }));
+  lineLayer.appendChild(path('M0,720 C262,668 512,692 720,730 C945,770 1166,690 1600,718', { 'stroke-width': 8 }));
 
-  // colina frontal (los niños se paran aquí)
-  root.appendChild(fill('path', { d: 'M0,716 Q540,656 1040,700 T1600,684 L1600,1000 L0,1000 Z', fill: '#83BD5C', class: 'hk-fill' }));
-  root.appendChild(ink('M0,716 Q540,656 1040,700 T1600,684', 6, { 'data-draw': '1' }));
+  lineLayer.appendChild(path('M930,440 L1044,332 L1162,440 L1144,454 L1144,654 C1112,662 1016,666 936,654 L936,454 Z', { 'stroke-width': 9 }));
+  lineLayer.appendChild(path('M1044,332 C1036,294 1046,264 1042,226 M1018,258 C1032,254 1056,254 1074,258', { 'stroke-width': 8 }));
+  lineLayer.appendChild(path('M1010,654 C1008,620 1012,564 1040,552 C1064,558 1074,612 1071,654 Z', { fill: '#2E6DA6', 'stroke-width': 7, class: 'draw-line door-color' }));
+  lineLayer.appendChild(path('M1038,488 C1059,482 1078,496 1076,518 C1070,538 1038,544 1027,522 C1018,505 1024,492 1038,488 Z', { fill: '#BDE4FF', 'stroke-width': 6, class: 'draw-line window-color' }));
 
-  // ============ FLORES ============
-  const flower = (x, yBase, col) => {
-    const g = el('g', { class: 'hk-grow hk-flower', 'data-o': `${x},${yBase}` });
-    g.appendChild(ink(`M${x},${yBase} L${x},${yBase - 58}`, 5, { stroke: '#3E7D3A' }));
-    const py = yBase - 66;
-    [[0, -16], [15, -5], [9, 13], [-9, 13], [-15, -5]].forEach((p) =>
-      g.appendChild(fill('circle', { cx: x + p[0], cy: py + p[1], r: 11, fill: col, stroke: INK, 'stroke-width': 3.5 })));
-    g.appendChild(fill('circle', { cx: x, cy: py, r: 8, fill: '#FBD24D', stroke: INK, 'stroke-width': 3.5 }));
-    return g;
-  };
-  root.appendChild(flower(316, 968, '#E86A8E'));
-  root.appendChild(flower(1196, 980, '#7C9BE0'));
-  root.appendChild(flower(1452, 966, '#F2906F'));
+  lineLayer.appendChild(path('M500,518 L604,430 L712,518 L696,532 L696,660 L516,660 L516,532 Z', { 'stroke-width': 8 }));
+  lineLayer.appendChild(path('M1244,548 L1328,474 L1420,548 L1404,560 L1404,666 L1260,666 L1260,560 Z', { 'stroke-width': 8 }));
+  lineLayer.appendChild(path(roughRect(580, 596, 46, 64, 7), { fill: '#8B5C42', 'stroke-width': 6 }));
+  lineLayer.appendChild(path(roughRect(1296, 604, 44, 62, 7), { fill: '#8B5C42', 'stroke-width': 6 }));
 
-  // ============ NIÑOS ============
-  const KIDS = [
-    [602, '#E7B488', '#E53935'], [754, '#C98A57', '#0077C8'],
-    [906, '#8F5E38', '#F2B705'], [1058, '#DDA46F', '#22A39A'],
-  ];
-  KIDS.forEach(([x, skin, shirt]) => {
-    const g = el('g', { class: 'hk-grow hk-kid', 'data-o': `${x},892` });
-    g.appendChild(ink(`M${x - 12},862 L${x - 16},892 M${x + 12},862 L${x + 16},892`, 5));
-    g.appendChild(ink(`M${x - 76},812 L${x},782 L${x + 76},812`, 5));
-    g.appendChild(fill('circle', { cx: x - 76, cy: 812, r: 7, fill: skin, stroke: INK, 'stroke-width': 3.5 }));
-    g.appendChild(fill('circle', { cx: x + 76, cy: 812, r: 7, fill: skin, stroke: INK, 'stroke-width': 3.5 }));
-    g.appendChild(fill('polygon', { points: `${x - 34},864 ${x},760 ${x + 34},864`, fill: shirt, stroke: INK, 'stroke-width': 6, 'stroke-linejoin': 'round' }));
-    g.appendChild(fill('circle', { cx: x, cy: 724, r: 34, fill: skin, stroke: INK, 'stroke-width': 6 }));
-    g.appendChild(ink(`M${x - 12},718 h0.1 M${x + 12},718 h0.1`, 8));
-    g.appendChild(ink(`M${x - 13},734 q13,12 26,0`, 4.5));
-    root.appendChild(g);
+  lineLayer.appendChild(path('M1240,204 C1248,136 1308,92 1372,126 C1434,160 1428,252 1362,286 C1300,318 1232,276 1240,204 Z', { fill: 'rgba(249,191,53,.34)', stroke: '#EAA21E', 'stroke-width': 8 }));
+  for (let i = 0; i < 12; i += 1) {
+    const a = (Math.PI * 2 * i) / 12;
+    const x1 = 1320 + Math.cos(a) * 104;
+    const y1 = 204 + Math.sin(a) * 104;
+    const x2 = 1320 + Math.cos(a) * 144;
+    const y2 = 204 + Math.sin(a) * 144;
+    lineLayer.appendChild(path(`M${x1.toFixed(1)},${y1.toFixed(1)} C${((x1 + x2) / 2 + Math.sin(a) * 10).toFixed(1)},${((y1 + y2) / 2 - Math.cos(a) * 10).toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}`, { stroke: '#EAA21E', 'stroke-width': 7 }));
+  }
+
+  const clouds = el('g', { class: 'clouds' });
+  clouds.appendChild(path('M870,190 C835,188 820,150 854,130 C868,88 930,88 954,122 C990,100 1048,116 1058,156 C1104,156 1130,194 1104,220 C1056,244 992,224 954,232 C916,238 900,194 870,190 Z', { fill: 'rgba(255,255,255,.35)', opacity: .8, 'stroke-width': 7 }));
+  clouds.appendChild(path('M1240,322 C1214,316 1208,292 1230,276 C1240,244 1282,244 1298,270 C1328,256 1370,272 1374,306 C1342,328 1308,314 1280,326 C1260,332 1252,326 1240,322 Z', { fill: 'rgba(255,255,255,.26)', opacity: .68, 'stroke-width': 6 }));
+  lineLayer.appendChild(clouds);
+
+  const kids = el('g', { class: 'kids' });
+  [
+    [610, 780, '#E7B488', '#E53935'],
+    [760, 790, '#C98A57', '#0077C8'],
+    [920, 790, '#8F5E38', '#F5C84C'],
+    [1080, 782, '#DDA46F', '#22A39A'],
+  ].forEach(([x, y, skin, shirt], i) => {
+    const kid = el('g', { class: 'kid', 'data-kid': i });
+    kid.appendChild(path(`M${x - 72},${y + 84} C${x - 28},${y + 48} ${x + 22},${y + 46} ${x + 74},${y + 82}`, { 'stroke-width': 7 }));
+    kid.appendChild(path(`M${x - 34},${y + 120} C${x - 22},${y + 80} ${x - 8},${y + 48} ${x},${y + 8} C${x + 10},${y + 48} ${x + 22},${y + 82} ${x + 34},${y + 120} Z`, { fill: shirt, 'stroke-width': 7 }));
+    kid.appendChild(path(`M${x - 34},${y - 34} C${x - 14},${y - 66} ${x + 32},${y - 58} ${x + 40},${y - 18} C${x + 36},${y + 20} ${x - 12},${y + 38} ${x - 42},${y + 4} C${x - 48},${y - 12} ${x - 44},${y - 26} ${x - 34},${y - 34} Z`, { fill: skin, 'stroke-width': 7 }));
+    kid.appendChild(path(`M${x - 13},${y - 18} h.1 M${x + 13},${y - 18} h.1`, { 'stroke-width': 8 }));
+    kid.appendChild(path(`M${x - 14},${y + 2} C${x - 2},${y + 14} ${x + 14},${y + 14} ${x + 24},${y + 1}`, { 'stroke-width': 5 }));
+    kid.appendChild(path(`M${x - 14},${y + 118} L${x - 18},${y + 158} M${x + 16},${y + 118} L${x + 24},${y + 158}`, { 'stroke-width': 6 }));
+    kids.appendChild(kid);
+  });
+  lineLayer.appendChild(kids);
+
+  const flowerDoodles = el('g', { class: 'hero-doodles' });
+  [
+    ['/assets/doodles/flor01.png', 300, 812, 92, -9],
+    ['/assets/doodles/flor03.png', 1216, 818, 82, 8],
+    ['/assets/doodles/corazon.png', 820, 612, 58, -5],
+    ['/assets/doodles/tulipan.webp', 1400, 790, 70, 7],
+  ].forEach(([href, x, y, size, rot]) => {
+    flowerDoodles.appendChild(el('image', {
+      href,
+      x,
+      y,
+      width: size,
+      height: size,
+      transform: `rotate(${rot} ${x + size / 2} ${y + size / 2})`,
+      opacity: .72,
+      class: 'hero-png-doodle',
+    }));
+  });
+  lineLayer.appendChild(flowerDoodles);
+
+  scene.appendChild(lineLayer);
+
+  const drawLines = [...svg.querySelectorAll('.draw-line')];
+  const colorLines = [...svg.querySelectorAll('.color-line')];
+  const pngDoodles = [...svg.querySelectorAll('.hero-png-doodle')];
+  drawLines.forEach((p) => {
+    if (typeof p.getTotalLength !== 'function') return;
+    const len = p.getTotalLength();
+    p.dataset.len = len;
+    p.setAttribute('stroke-dasharray', len);
+    p.setAttribute('stroke-dashoffset', len);
+  });
+  colorLines.forEach((p) => {
+    const len = p.getTotalLength ? p.getTotalLength() : 1500;
+    p.dataset.len = len;
+    p.setAttribute('stroke-dasharray', len);
+    p.setAttribute('stroke-dashoffset', len);
   });
 
-  // ============ CORAZONES ============
-  const heart = (x, y, s, ph) => {
-    const g = el('g', { class: 'hk-heart' });
-    g.dataset.ph = ph; g.dataset.hx = x; g.dataset.hy = y; g.dataset.hs = s;
-    g.appendChild(fill('path', { d: 'M0,9 C0,-5 -20,-6 -20,8 C-20,19 -6,26 0,33 C6,26 20,19 20,8 C20,-6 0,-5 0,9 Z', fill: '#E5556B', stroke: INK, 'stroke-width': 4 }));
-    return g;
-  };
-  root.appendChild(heart(812, 604, 1, 0));
-  root.appendChild(heart(1006, 560, 0.7, 1.6));
-  root.appendChild(heart(700, 620, 0.55, 0.8));
-
-  // ============ WIRING: dibujo de intro + bucle de ambiente ============
-  const draws = [...svg.querySelectorAll('[data-draw]')];
-  const fills = [...svg.querySelectorAll('.hk-fill')];
-  const pops = [...svg.querySelectorAll('.hk-pop')];
-  const grows = [...svg.querySelectorAll('.hk-grow')];
-  const flowers = [...svg.querySelectorAll('.hk-flower')];
-  const kids = [...svg.querySelectorAll('.hk-kid')];
-  const hearts = [...svg.querySelectorAll('.hk-heart')];
-  const rise = svg.querySelector('.hk-rise');
-
-  draws.forEach((p) => { const L = p.getTotalLength(); p.setAttribute('stroke-dasharray', L); p.setAttribute('stroke-dashoffset', L); p.dataset.len = L; });
-
-  const clamp = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+  const clamp = (v) => Math.max(0, Math.min(1, v));
   const ease = (t) => 1 - Math.pow(1 - t, 3);
+  const win = (k, a, b) => clamp((k - a) / (b - a));
 
-  // Helper: setea transform como ATRIBUTO SVG (coordenadas reales, fiable
-  // con filtros, a diferencia de transform-box CSS que descuadra los rayos).
-  const setTr = (node, tr) => node.setAttribute('transform', tr);
-
-  // Dibuja la escena de 0→1 (intro automática una sola vez al cargar).
-  function applyDraw(k) {
-    const win = (a, b) => clamp((k - a) / (b - a));
-    draws.forEach((p, i) => {
-      const kk = ease(win(i * 0.06, i * 0.06 + 0.45));
+  function applyIntro(k) {
+    drawLines.forEach((p, i) => {
+      const kk = ease(win(k, i * 0.012, 0.5 + i * 0.006));
       p.setAttribute('stroke-dashoffset', (+p.dataset.len) * (1 - kk));
+      p.setAttribute('opacity', Math.max(.02, kk).toFixed(3));
     });
-    fills.forEach((f, i) => { f.setAttribute('opacity', win(0.0 + i * 0.06, 0.28 + i * 0.06)); });
-    pops.forEach((g, i) => {
-      const kk = ease(win(0.14 + i * 0.06, 0.5 + i * 0.06));
-      g.setAttribute('opacity', kk);
-      g.dataset.pop = kk;
+    colorLines.forEach((p, i) => {
+      const kk = ease(win(k, .18 + i * 0.004, .76 + i * 0.004));
+      p.setAttribute('stroke-dashoffset', (+p.dataset.len) * (1 - kk));
+      p.setAttribute('opacity', (kk * .62).toFixed(3));
     });
-    grows.forEach((g, i) => {
-      const kk = ease(win(0.28 + i * 0.04, 0.62 + i * 0.04));
-      g.setAttribute('opacity', kk);
-      g.dataset.grow = kk;
+    pngDoodles.forEach((img, i) => {
+      const kk = ease(win(k, .62 + i * .05, .96));
+      img.setAttribute('opacity', (kk * .72).toFixed(3));
+      img.setAttribute('transform-origin', 'center');
     });
-    if (rise) { const kk = ease(win(0.04, 0.46)); rise.dataset.grow = kk; rise.setAttribute('opacity', kk); }
   }
 
-  if (reduce) {
-    applyDraw(1);
-    // estado final estático, sin bucle de ambiente
-    pops.forEach((g) => setTr(g, ''));
-    return;
-  }
+  applyIntro(reduce ? 1 : 0);
+  if (reduce) return;
 
-  // ---- Reproducción en BUCLE continuo (no atado al scroll) ----
-  // La escena se dibuja sola en ~2.6 s y luego el ambiente sigue vivo en loop.
-  let t0 = null;
-  let active = true;
+  let start = null;
   let raf = 0;
-  const DRAW_SECS = 2.6;
+  function tick(ts) {
+    if (!start) start = ts;
+    const seconds = (ts - start) / 1000;
+    applyIntro(clamp(seconds / 3.1));
 
-  function frame(ts) {
-    if (t0 == null) t0 = ts;
-    const tsec = (ts - t0) / 1000;
-    applyDraw(Math.min(1, tsec / DRAW_SECS));
-
-    const w = (period, ph) => Math.sin((tsec / period) * Math.PI * 2 + (ph || 0));
-
-    // SOL: el disco hace un bob suave; los rayos giran sobre el CENTRO REAL
-    // del sol usando rotate(grados cx cy) — atributo SVG, nunca se separan.
-    const riseGrow = sun.dataset.grow != null ? +sun.dataset.grow : 1;
-    const riseY = (1 - riseGrow) * 70 + w(6) * -6;
-    setTr(sun, `translate(0 ${riseY.toFixed(2)})`);
-    setTr(sunSpin, `rotate(${(w(40) * 6).toFixed(2)} ${cx} ${cy})`);
-
-    // nubes: deriva horizontal
-    [cloud1, cloud2].forEach((c) => {
-      const amp = +c.dataset.amp, spd = +c.dataset.spd;
-      setTr(c, `translate(${(Math.sin(tsec * spd * Math.PI) * amp).toFixed(2)} 0)`);
-    });
-
-    // pájaros
-    setTr(birds, `translate(${(w(11) * 14).toFixed(2)} ${(w(5.5) * -8).toFixed(2)})`);
-
-    // POPS (casas/iglesia): rebote de entrada
-    pops.forEach((g) => {
-      const k = g.dataset.pop != null ? +g.dataset.pop : 1;
-      const [ox, oy] = (g.dataset.o || '0,0').split(',').map(Number);
-      const s = 0.8 + 0.2 * k;
-      setTr(g, `translate(${ox} ${oy}) scale(${s}) translate(${-ox} ${-oy})`);
-    });
-
-    // flores: crecen desde su base y se mecen (rotate sobre su base real)
-    flowers.forEach((g, i) => {
-      const grow = g.dataset.grow != null ? +g.dataset.grow : 1;
-      const [ox, oy] = g.dataset.o.split(',').map(Number);
-      const rot = w(5, i * 1.2) * 3.5;
-      setTr(g, `translate(${ox} ${oy}) rotate(${rot.toFixed(2)}) scale(${grow}) translate(${-ox} ${-oy})`);
-    });
-
-    // niños: crecen desde el suelo y "respiran" (translateY suave)
-    kids.forEach((g, i) => {
-      const grow = g.dataset.grow != null ? +g.dataset.grow : 1;
-      const [ox, oy] = g.dataset.o.split(',').map(Number);
-      const by = w(4, i * 0.7) * -5;
-      setTr(g, `translate(${ox} ${oy}) translate(0 ${by.toFixed(2)}) scale(${grow}) translate(${-ox} ${-oy})`);
-    });
-
-    // corazones: suben y se desvanecen en bucle
-    hearts.forEach((g) => {
-      const ph = +g.dataset.ph, hx = +g.dataset.hx, hy = +g.dataset.hy, hs = +g.dataset.hs;
-      const tt = ((tsec / 5 + ph) % 1 + 1) % 1;
-      setTr(g, `translate(${(hx + Math.sin(tt * 6.28) * 10).toFixed(2)} ${(hy - tt * 90).toFixed(2)}) scale(${(hs * (0.7 + tt * 0.4)).toFixed(3)})`);
-      g.setAttribute('opacity', (Math.sin(tt * Math.PI) * 0.9).toFixed(3));
-    });
-
-    if (active) raf = requestAnimationFrame(frame);
-    else raf = 0;
+    clouds.setAttribute('transform', `translate(${Math.sin(seconds * .38) * 10} ${Math.cos(seconds * .25) * 4})`);
+    kids.setAttribute('transform', `translate(0 ${Math.sin(seconds * 1.15) * 2.2})`);
+    flowerDoodles.setAttribute('transform', `translate(0 ${Math.sin(seconds * .8) * 5})`);
+    raf = requestAnimationFrame(tick);
   }
-  const visibilityObserver = new IntersectionObserver(([entry]) => {
-    active = entry.isIntersecting;
-    if (active && !raf) {
-      t0 = null;
-      raf = requestAnimationFrame(frame);
+
+  const observer = new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) {
+      if (!raf) raf = requestAnimationFrame(tick);
+    } else if (raf) {
+      cancelAnimationFrame(raf);
+      raf = 0;
     }
-  }, { rootMargin: '160px 0px' });
-  visibilityObserver.observe(host);
-  raf = requestAnimationFrame(frame);
+  });
+  observer.observe(host);
 })();

@@ -142,20 +142,20 @@ img{display:block;max-width:100%}
 /* La escena se dibuja sola al cargar y luego queda en bucle (no scroll). */
 .hero{position:relative;height:175vh;min-height:1160px;background:#2E6DA6}
 .hero__stage{position:sticky;top:0;height:100vh;width:100%;overflow:hidden;
-  background:linear-gradient(180deg,#DCEFFA 0%,#F5EAD6 52%,var(--cream) 82%,#2E6DA6 100%)}
+  background:linear-gradient(180deg,#F0FAFF 0%,#FFF5E5 48%,var(--cream) 78%,#2E6DA6 100%)}
 .hero__paper{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.5;mix-blend-mode:multiply;
   background-image:
     radial-gradient(circle at 50% 50%, rgba(120,100,70,.06) 0, transparent 58%),
     radial-gradient(circle,rgba(76,46,18,.10) .7px,transparent 1.2px);
   background-size:auto,9px 9px}
 .hero__veil{position:absolute;inset:0;z-index:2;pointer-events:none;background:
-  linear-gradient(101deg,rgba(255,249,239,.97) 0%,rgba(255,249,239,.85) 25%,rgba(255,249,239,.42) 48%,rgba(255,249,239,0) 67%),
-  linear-gradient(180deg,rgba(220,239,250,.82) 0%,rgba(255,249,239,0) 18%);}
+  linear-gradient(101deg,rgba(255,249,239,.98) 0%,rgba(255,249,239,.86) 25%,rgba(255,249,239,.38) 50%,rgba(255,249,239,0) 70%),
+  linear-gradient(180deg,rgba(240,250,255,.7) 0%,rgba(255,249,239,0) 18%);}
 /* Contenedor del SVG: proporción exacta de la composición (1600x1000 = 1.6),
    dimensionado para cubrir el viewport sin barras. */
 .hero__draw{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   width:max(100vw,160vh);height:max(100vh,62.5vw);z-index:1;pointer-events:none;
-  opacity:var(--hero-scene-opacity,1);filter:saturate(1.06) contrast(1.02);transition:filter .25s}
+  opacity:var(--hero-scene-opacity,1);filter:saturate(1.08) contrast(1.03);transition:filter .25s}
 .hero__draw>svg{width:100%;height:100%}
 .hero__door-wash{position:absolute;inset:0;z-index:2;pointer-events:none;background:#2E6DA6;
   opacity:var(--hero-blue-opacity,0)}
