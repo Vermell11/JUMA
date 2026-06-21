@@ -2,6 +2,8 @@
    Secciones — layouts editoriales, cada una distinta
    ============================================================ */
 .section{position:relative}
+.has-doodles{overflow:hidden}
+.has-doodles>.wrap,.has-doodles>.impact{position:relative;z-index:2}
 .section--pad::after{
   content:"";position:absolute;left:var(--pad);right:var(--pad);top:0;height:1px;max-width:var(--wrap);
   margin:auto;opacity:.55;background:
@@ -25,6 +27,7 @@
 .section>.wrap{position:relative;z-index:1}
 
 #nosotros{
+  position:relative;overflow:hidden;
   background:
     linear-gradient(180deg,#2E6DA6 0,#2E6DA6 clamp(470px,60vw,720px),var(--paper) clamp(470px,60vw,720px),var(--paper) 100%);
   margin-top:-1px;
@@ -358,3 +361,26 @@ a.cinfo:hover{background:rgba(255,255,255,.1)}
 .s-head{max-width:62ch}
 .s-head h2{margin-top:14px}
 .s-head .lead{margin-top:16px}
+
+/* ============================================================
+   Garabatos crayón decorativos (flores, sol, corazón…)
+   ============================================================ */
+.doodle{position:absolute;z-index:1;pointer-events:none;
+  width:var(--size,72px);
+  transform:translate(var(--dx,0),var(--dy,0)) rotate(var(--rot,0deg));
+  opacity:var(--op,.42);filter:drop-shadow(0 6px 12px rgba(58,42,30,.12));
+  mix-blend-mode:multiply}
+.doodle img{display:block;width:100%;height:auto}
+@keyframes doodleFloat{0%,100%{transform:translate(var(--dx,0),var(--dy,0)) rotate(var(--rot,0deg))}
+  50%{transform:translate(var(--dx,0),calc(var(--dy,0) - 9px)) rotate(calc(var(--rot,0deg) + 3deg))}}
+.doodle--float{animation:doodleFloat 6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.doodle--float{animation:none}}
+@media (max-width:820px){.doodle{--size:54px!important}.doodle.doodle--hide-m{display:none}}
+
+/* Toque crayón en tarjetas de Nosotros (borde a mano sutil) */
+.mv__item{position:relative}
+.mv__item::after{content:"";position:absolute;inset:-3px;border-radius:24px;pointer-events:none;
+  border:2px solid rgba(58,42,30,.16);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='r'%3E%3CfeTurbulence baseFrequency='0.04' numOctaves='2' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='4'/%3E%3C/filter%3E%3C/svg%3E#r");
+  opacity:.0;transition:opacity .25s}
+.mv__item:hover::after{opacity:1}
