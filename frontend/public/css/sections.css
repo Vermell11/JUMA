@@ -368,8 +368,9 @@ a.cinfo:hover{background:rgba(255,255,255,.1)}
 .doodle{position:absolute;z-index:1;pointer-events:none;
   width:var(--size,72px);
   transform:translate(var(--dx,0),var(--dy,0)) rotate(var(--rot,0deg));
-  opacity:var(--op,.42);filter:drop-shadow(0 6px 12px rgba(58,42,30,.12));
-  mix-blend-mode:multiply}
+  opacity:0;filter:drop-shadow(0 6px 12px rgba(58,42,30,.12));
+  mix-blend-mode:multiply;transition:opacity .9s ease,transform .9s cubic-bezier(.18,.75,.22,1)}
+.doodles-in .doodle{opacity:var(--op,.34)}
 .doodle img{display:block;width:100%;height:auto}
 @keyframes doodleFloat{0%,100%{transform:translate(var(--dx,0),var(--dy,0)) rotate(var(--rot,0deg))}
   50%{transform:translate(var(--dx,0),calc(var(--dy,0) - 9px)) rotate(calc(var(--rot,0deg) + 3deg))}}
@@ -384,3 +385,122 @@ a.cinfo:hover{background:rgba(255,255,255,.1)}
   -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='r'%3E%3CfeTurbulence baseFrequency='0.04' numOctaves='2' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='4'/%3E%3C/filter%3E%3C/svg%3E#r");
   opacity:.0;transition:opacity .25s}
 .mv__item:hover::after{opacity:1}
+
+/* ============================================================
+   V2.4 · Dirección artística: cuaderno vivo, sobrio y coherente
+   ============================================================ */
+main>.section:not(.hero){
+  isolation:isolate;
+}
+main>.section:not(.hero)::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.42;
+  background:
+    radial-gradient(circle at 12% 16%,rgba(0,119,200,.035),transparent 20rem),
+    radial-gradient(circle at 86% 84%,rgba(229,57,53,.028),transparent 18rem),
+    linear-gradient(90deg,rgba(75,113,160,.024) 1px,transparent 1px),
+    linear-gradient(rgba(75,113,160,.018) 1px,transparent 1px);
+  background-size:auto,auto,34px 34px,34px 34px;
+}
+main>.section:not(.hero)>.wrap,
+main>.section:not(.hero)>.impact{position:relative;z-index:2}
+.section--pad{
+  position:relative;
+}
+.section--pad::before{
+  content:"";position:absolute;left:50%;top:0;z-index:1;width:min(620px,72vw);height:22px;
+  transform:translateX(-50%) rotate(-.7deg);pointer-events:none;opacity:.28;
+  background:url("data:image/svg+xml,%3Csvg width='620' height='22' viewBox='0 0 620 22' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 12 C88 1 156 21 238 11 C336 -1 420 23 514 10 C560 4 590 7 614 13' fill='none' stroke='%230077C8' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E") center/100% 100% no-repeat;
+}
+#nosotros.section--pad::before{display:none}
+.eyebrow{
+  transform-origin:left center;
+}
+.reveal.in .eyebrow,
+.eyebrow.reveal.in{
+  animation:eyebrow-settle .55s cubic-bezier(.18,.75,.22,1) both;
+}
+@keyframes eyebrow-settle{
+  from{transform:translateY(8px) rotate(-1.4deg);opacity:.35}
+  to{transform:none;opacity:1}
+}
+.s-head h2,
+.about-intro h2,
+.donate h2,
+.contact h2{
+  position:relative;
+}
+.reveal.in .s-head h2::after,
+.about-intro__head.reveal.in h2::after,
+.donate-left.reveal.in h2::after,
+.contact .s-head.reveal.in h2::after{
+  transform:scaleX(1);
+}
+.s-head h2::after,
+.about-intro h2::after,
+.donate h2::after,
+.contact h2::after{
+  content:"";display:block;width:min(240px,48vw);height:10px;margin-top:18px;border-radius:999px;
+  background:linear-gradient(90deg,rgba(229,57,53,.72),rgba(232,163,61,.45));
+  transform:scaleX(.08);transform-origin:left;transition:transform .8s cubic-bezier(.18,.75,.22,1);
+}
+#nosotros .about-intro h2::after{background:linear-gradient(90deg,rgba(189,228,255,.8),rgba(255,255,255,.28))}
+.choreo-item{
+  opacity:0;transform:translateY(24px) rotate(var(--tilt,0deg));
+  transition:opacity .62s ease,transform .74s cubic-bezier(.18,.75,.22,1);
+  transition-delay:calc(var(--stagger,0) * 70ms);
+}
+.in .choreo-item,
+.choreo-item.in{
+  opacity:1;transform:translateY(0) rotate(var(--tilt-end,0deg));
+}
+.prog.choreo-item:nth-child(odd){--tilt:-.28deg;--tilt-end:-.12deg}
+.prog.choreo-item:nth-child(even){--tilt:.28deg;--tilt-end:.12deg}
+.mv__item.choreo-item:nth-child(2){--tilt:.6deg;--tilt-end:.45deg}
+.mv__item.choreo-item:nth-child(3){--tilt:-.55deg;--tilt-end:-.35deg}
+.impact__stat.choreo-item{
+  transform:translateY(18px);
+}
+.tier.choreo-item{
+  transform:translateX(-14px);
+}
+.mosaic figure.choreo-item:nth-child(3n+1){--tilt:-.35deg;--tilt-end:-.2deg}
+.mosaic figure.choreo-item:nth-child(3n+2){--tilt:.35deg;--tilt-end:.18deg}
+.doodle{
+  max-width:18vw;
+}
+.doodle[data-doodle="corazon"]{--op:.22}
+.doodle[data-doodle^="flor"]{--op:.26}
+.doodle[data-doodle="tulipan"]{--op:.3}
+#nosotros .doodle{mix-blend-mode:screen;filter:drop-shadow(0 6px 12px rgba(6,34,58,.1))}
+#impacto .doodle{mix-blend-mode:screen}
+#programas .doodle,#galeria .doodle,#donar .doodle{mix-blend-mode:multiply}
+.doodle::after{
+  content:"";position:absolute;inset:18% 12%;border-radius:50%;z-index:-1;
+  background:rgba(255,255,255,.38);filter:blur(14px);opacity:.5;
+}
+.prog,
+.mv__item,
+.tier,
+.pay,
+.testi,
+.donate-story{
+  backdrop-filter:saturate(1.05) blur(2px);
+}
+.prog:hover,
+.mv__item:hover,
+.tier:hover{
+  will-change:transform;
+}
+@media (prefers-reduced-motion:reduce){
+  .choreo-item{opacity:1;transform:none;transition:none}
+  .s-head h2::after,.about-intro h2::after,.donate h2::after,.contact h2::after{transform:scaleX(1);transition:none}
+  .reveal.in .eyebrow,.eyebrow.reveal.in{animation:none}
+  .doodle{opacity:var(--op,.24);transition:none}
+}
+@media (max-width:820px){
+  main>.section:not(.hero)::before{opacity:.28;background-size:auto,auto,28px 28px,28px 28px}
+  .section--pad::before{width:70vw;opacity:.18}
+  .s-head h2::after,.about-intro h2::after,.donate h2::after,.contact h2::after{width:168px;height:8px;margin-top:14px}
+  .doodle{max-width:72px}
+  #impacto .doodle,#testimonios .doodle{display:none}
+}

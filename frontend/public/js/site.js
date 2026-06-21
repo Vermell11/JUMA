@@ -126,6 +126,36 @@
   },{threshold:0.12,rootMargin:'0px 0px -8% 0px'});
   document.querySelectorAll('.reveal').forEach(el=>{ if(reduce)el.classList.add('in'); else io.observe(el); });
 
+  /* ---------- section choreography ---------- */
+  const choreoGroups=[
+    '.mv .mv__item',
+    '.prog-list .prog',
+    '.impact__row .impact__stat',
+    '.tiers .tier',
+    '.mosaic figure',
+    '.contact-grid .cinfo',
+  ];
+  choreoGroups.forEach(sel=>{
+    document.querySelectorAll(sel).forEach((el,i)=>{
+      el.classList.add('choreo-item');
+      el.style.setProperty('--stagger', i);
+    });
+  });
+  if(reduce){
+    document.querySelectorAll('.has-doodles').forEach(el=>el.classList.add('doodles-in'));
+    document.querySelectorAll('.choreo-item').forEach(el=>el.classList.add('in'));
+  }else{
+    const sectionIo=new IntersectionObserver((ents)=>{
+      ents.forEach(en=>{
+        if(!en.isIntersecting)return;
+        en.target.classList.add('doodles-in');
+        en.target.querySelectorAll('.choreo-item').forEach(el=>el.classList.add('in'));
+        sectionIo.unobserve(en.target);
+      });
+    },{threshold:0.14,rootMargin:'0px 0px -10% 0px'});
+    document.querySelectorAll('.has-doodles,.prog-list,.mv,.impact__row,.tiers,.mosaic,.contact-grid').forEach(el=>sectionIo.observe(el));
+  }
+
   /* ---------- counters ---------- */
   function animateCount(el){
     const target=parseFloat(el.getAttribute('data-count'));
