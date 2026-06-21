@@ -1,7 +1,7 @@
 ---
 // Página principal — Fundación Juan Una Mano Ayuda
 // CSS en /public/css · JS en /public/js · imágenes en /public/assets
-import HeroPlayer from '../remotion/HeroPlayer.tsx';
+// Hero ilustrado a crayón: SVG generado en /public/js/hero.js
 ---
 <!doctype html>
 <html lang="es">
@@ -64,9 +64,7 @@ import HeroPlayer from '../remotion/HeroPlayer.tsx';
 <!-- ===================== HERO ===================== -->
 <section class="hero" id="inicio">
   <div class="hero__stage">
-    <div class="hero__draw" aria-hidden="true">
-      <HeroPlayer client:load />
-    </div>
+    <div class="hero__draw" id="hero-canvas" aria-hidden="true"></div>
     <div class="hero__paper"></div>
     <div class="hero__veil"></div>
     <div class="hero__content">
@@ -452,6 +450,7 @@ import HeroPlayer from '../remotion/HeroPlayer.tsx';
 <div class="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg><span class="toast__msg"></span></div>
 
 <script is:inline>document.getElementById('yr').textContent=new Date().getFullYear();</script>
+<script is:inline src="/js/hero.js"></script>
 <script is:inline src="/js/site.js"></script>
 </body>
 </html>

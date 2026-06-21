@@ -7,23 +7,11 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
-    "assets": "node scripts/build-assets.mjs"
+    "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/react": "^4.4.2",
-    "@remotion/player": "^4.0.481",
     "@tailwindcss/vite": "^4.1.0",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
     "astro": "^5.7.0",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "remotion": "^4.0.481",
-    "sharp": "^0.34.0",
     "tailwindcss": "^4.1.0"
-  },
-  "devDependencies": {
-    "@remotion/cli": "^4.0.481"
   }
 }
