@@ -49,9 +49,27 @@
       </filter>
     </defs>
   `;
-  const root = el('g', { filter: 'url(#crayon)' });
+  const root = el('g', {});
   svg.appendChild(root);
   host.appendChild(svg);
+
+  const camera = {
+    full: { x: 0, y: 0, w: W, h: H },
+    // Puerta de la iglesia: punto focal del dolly de scroll.
+    door: { x: 1000, y: 508, w: 170, h: 106.25 },
+  };
+  const mix = (a, b, t) => a + (b - a) * t;
+  let lastCamera = -1;
+  window.__jumaHeroCamera = (t) => {
+    const k = Math.max(0, Math.min(1, t || 0));
+    if (Math.abs(k - lastCamera) < 0.002) return;
+    lastCamera = k;
+    const x = mix(camera.full.x, camera.door.x, k);
+    const y = mix(camera.full.y, camera.door.y, k);
+    const w = mix(camera.full.w, camera.door.w, k);
+    const h = mix(camera.full.h, camera.door.h, k);
+    svg.setAttribute('viewBox', `${x.toFixed(2)} ${y.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`);
+  };
 
   // trazo crayón: línea con dasharray para "dibujarse"
   const ink = (d, w, extra) =>
@@ -78,12 +96,28 @@
   sun.appendChild(ink(`M${cx - 28},${cy + 22} q28,26 56,0`, 6, { stroke: '#9A5B12' }));
   root.appendChild(sun);
 
-  // Nubes (deriva suave)
+  // Nubes (contorno único de crayón, sin círculos superpuestos)
   const cloud = (x, y, s) => {
-    const g = el('g', {});
-    g.appendChild(fill('rect', { x: x - 78 * s, y: y + 2 * s, width: 156 * s, height: 24 * s, fill: '#fff' }));
-    [[0, 8, 42], [-44, 16, 30], [44, 16, 32], [-20, -14, 30], [24, -12, 28]].forEach((p) =>
-      g.appendChild(fill('ellipse', { cx: x + p[0] * s, cy: y + p[1] * s, rx: p[2] * s, ry: p[2] * s * 0.8, fill: '#fff', stroke: INK, 'stroke-width': 4 })));
+    const g = el('g', { transform: `translate(${x} ${y}) scale(${s})` });
+    const d = 'M-98,28 C-122,26 -132,2 -111,-13 C-101,-45 -58,-45 -42,-21 C-20,-61 42,-56 54,-18 C89,-23 119,-2 112,27 C106,54 68,55 36,48 C6,61 -32,56 -52,42 C-73,49 -91,45 -98,28 Z';
+    g.appendChild(el('path', {
+      d,
+      fill: 'rgba(255,255,255,.34)',
+      stroke: '#3a2a1e',
+      'stroke-width': '7',
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      filter: 'url(#crayon)',
+      opacity: '.78',
+    }));
+    g.appendChild(el('path', {
+      d: 'M-78,25 C-42,35 -18,30 8,37 C42,45 72,37 91,25',
+      fill: 'none',
+      stroke: '#8DB8D6',
+      'stroke-width': '4',
+      'stroke-linecap': 'round',
+      opacity: '.55',
+    }));
     return g;
   };
   const cloud1 = el('g', { class: 'hk-cloud', 'data-amp': '26', 'data-spd': '0.10' }, [cloud(980, 165, 1)]);
@@ -220,6 +254,8 @@
   // ---- Reproducción en BUCLE continuo (no atado al scroll) ----
   // La escena se dibuja sola en ~2.6 s y luego el ambiente sigue vivo en loop.
   let t0 = null;
+  let active = true;
+  let raf = 0;
   const DRAW_SECS = 2.6;
 
   function frame(ts) {
@@ -277,7 +313,16 @@
       g.setAttribute('opacity', (Math.sin(tt * Math.PI) * 0.9).toFixed(3));
     });
 
-    requestAnimationFrame(frame);
+    if (active) raf = requestAnimationFrame(frame);
+    else raf = 0;
   }
-  requestAnimationFrame(frame);
+  const visibilityObserver = new IntersectionObserver(([entry]) => {
+    active = entry.isIntersecting;
+    if (active && !raf) {
+      t0 = null;
+      raf = requestAnimationFrame(frame);
+    }
+  }, { rootMargin: '160px 0px' });
+  visibilityObserver.observe(host);
+  raf = requestAnimationFrame(frame);
 })();
