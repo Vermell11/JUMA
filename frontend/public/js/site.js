@@ -148,12 +148,21 @@
 
   /* ---------- donate tiers ---------- */
   document.querySelectorAll('[data-tiers]').forEach(group=>{
+    const story=document.querySelector('.donate-story__line');
+    const syncStory=(tier)=>{
+      if(!story||!tier)return;
+      const text=tier.getAttribute(`data-story-${lang}`);
+      if(text) story.textContent=text;
+    };
     group.querySelectorAll('.tier').forEach(t=>{
       t.addEventListener('click',()=>{
         group.querySelectorAll('.tier').forEach(x=>x.classList.remove('active'));
         t.classList.add('active');
+        syncStory(t);
       });
     });
+    group._syncStory=()=>syncStory(group.querySelector('.tier.active'));
+    group._syncStory();
   });
 
   /* ---------- copy buttons + toast ---------- */
@@ -234,6 +243,10 @@
 
   /* apply language last (after testi wired) */
   const _orig=applyLang;
-  applyLang=function(l){ _orig(l); if(window.__testiRefresh)window.__testiRefresh(); };
+  applyLang=function(l){
+    _orig(l);
+    document.querySelectorAll('[data-tiers]').forEach(group=>{ if(group._syncStory)group._syncStory(); });
+    if(window.__testiRefresh)window.__testiRefresh();
+  };
   applyLang(lang);
 })();
