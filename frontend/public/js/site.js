@@ -3,6 +3,14 @@
    ============================================================ */
 (function(){
   const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if('scrollRestoration' in history) history.scrollRestoration='manual';
+  const navEntry=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];
+  const isReload=navEntry ? navEntry.type==='reload' : performance.navigation&&performance.navigation.type===1;
+  if(isReload){
+    if(location.hash) history.replaceState(null,'',location.pathname+location.search);
+    window.scrollTo(0,0);
+    requestAnimationFrame(()=>window.scrollTo(0,0));
+  }
 
   /* ---------- i18n ---------- */
   const I18N={
@@ -52,7 +60,7 @@
   const about=document.querySelector('#nosotros');
   const clamp01=(v)=>Math.min(1,Math.max(0,v));
   const smooth=(v)=>v*v*(3-2*v);
-  const mobileQuery=window.matchMedia('(max-width: 920px)');
+  const mobileQuery=window.matchMedia('(max-width: 920px), (pointer: coarse)');
   const cssCache=new Map();
   const setRootVar=(name,value)=>{
     if(cssCache.get(name)===value)return;
@@ -60,6 +68,8 @@
     document.documentElement.style.setProperty(name,value);
   };
   let ticking=false;
+  let staticMobileHero=false;
+  let staticMobileAbout=false;
   function updateScrollEffects(){
     ticking=false;
     if(header) header.classList.toggle('solid', window.scrollY>60);
@@ -67,31 +77,48 @@
       const max=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
       setRootVar('--scroll-pct',(window.scrollY/max).toFixed(4));
     }
-    if(hero&&!reduce){
+    const isMobile=mobileQuery.matches;
+    if(hero&&!reduce&&!isMobile){
+      staticMobileHero=false;
       const rect=hero.getBoundingClientRect();
       const span=Math.max(1,hero.offsetHeight-window.innerHeight);
       const k=Math.min(1,Math.max(0,-rect.top/span));
       const e=smooth(clamp01(k/.9));
       const late=clamp01((k-.72)/.28);
       const lateEase=smooth(late);
-      const isMobile=mobileQuery.matches;
-      if(window.__jumaHeroCamera) window.__jumaHeroCamera(isMobile ? 0 : e);
+      if(window.__jumaHeroCamera) window.__jumaHeroCamera(e);
       setRootVar('--hero-copy-y',`${(-e*54).toFixed(1)}px`);
       setRootVar('--hero-copy-opacity',Math.max(0,1-lateEase*1.28).toFixed(3));
       setRootVar('--hero-scene-opacity',Math.max(0,1-lateEase*.92).toFixed(3));
       setRootVar('--hero-blue-opacity',lateEase.toFixed(3));
+    }else if(hero&&isMobile&&!staticMobileHero){
+      if(window.__jumaHeroCamera) window.__jumaHeroCamera(0);
+      setRootVar('--hero-copy-y','0px');
+      setRootVar('--hero-copy-opacity','1');
+      setRootVar('--hero-scene-opacity','1');
+      setRootVar('--hero-blue-opacity','0');
+      staticMobileHero=true;
     }
-    if(about&&!reduce){
+    if(about&&!reduce&&!isMobile){
+      staticMobileAbout=false;
       const r=about.getBoundingClientRect();
       const p=clamp01((window.innerHeight-r.top)/(window.innerHeight*.92));
-      const head=smooth(clamp01((p-.04)/.46));
-      const lead=smooth(clamp01((p-.12)/.5));
+      const head=smooth(clamp01((p-.30)/.48));
+      const lead=smooth(clamp01((p-.40)/.45));
       setRootVar('--about-head-opacity',head.toFixed(3));
       setRootVar('--about-lead-opacity',lead.toFixed(3));
       setRootVar('--about-head-y',`${((1-head)*18).toFixed(1)}px`);
       setRootVar('--about-lead-y',`${((1-lead)*16).toFixed(1)}px`);
       setRootVar('--about-head-blur',`${((1-head)*4).toFixed(1)}px`);
       setRootVar('--about-lead-blur',`${((1-lead)*3).toFixed(1)}px`);
+    }else if(about&&isMobile&&!staticMobileAbout){
+      setRootVar('--about-head-opacity','1');
+      setRootVar('--about-lead-opacity','1');
+      setRootVar('--about-head-y','0px');
+      setRootVar('--about-lead-y','0px');
+      setRootVar('--about-head-blur','0px');
+      setRootVar('--about-lead-blur','0px');
+      staticMobileAbout=true;
     }
   }
   function onScroll(){
@@ -123,7 +150,7 @@
   /* ---------- scroll reveal ---------- */
   const io=new IntersectionObserver((ents)=>{
     ents.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target);} });
-  },{threshold:0.12,rootMargin:'0px 0px -8% 0px'});
+  },{threshold:0.2,rootMargin:'0px 0px -34% 0px'});
   document.querySelectorAll('.reveal').forEach(el=>{ if(reduce)el.classList.add('in'); else io.observe(el); });
 
   /* ---------- section choreography ---------- */

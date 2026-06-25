@@ -225,6 +225,7 @@
     p.setAttribute('stroke-dasharray', len);
     p.setAttribute('stroke-dashoffset', len);
   });
+  pngDoodles.forEach((img) => img.setAttribute('transform-origin', 'center'));
 
   const clamp = (v) => Math.max(0, Math.min(1, v));
   const ease = (t) => 1 - Math.pow(1 - t, 3);
@@ -244,7 +245,6 @@
     pngDoodles.forEach((img, i) => {
       const kk = ease(win(k, .62 + i * .05, .96));
       img.setAttribute('opacity', (kk * .72).toFixed(3));
-      img.setAttribute('transform-origin', 'center');
     });
   }
 
@@ -253,10 +253,15 @@
 
   let start = null;
   let raf = 0;
+  let introDone = false;
   function tick(ts) {
     if (!start) start = ts;
     const seconds = (ts - start) / 1000;
-    applyIntro(clamp(seconds / 3.1));
+    if (!introDone) {
+      const k = clamp(seconds / 3.1);
+      applyIntro(k);
+      introDone = k >= 1;
+    }
 
     clouds.setAttribute('transform', `translate(${Math.sin(seconds * .38) * 10} ${Math.cos(seconds * .25) * 4})`);
     kids.setAttribute('transform', `translate(0 ${Math.sin(seconds * 1.15) * 2.2})`);
